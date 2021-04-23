@@ -140,9 +140,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\cJSON\cJSON.cpp" />
+    <ClCompile Include="src\http.cpp" />
     <ClCompile Include="src\keylogger.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\utils.cpp" />
+    <ClCompile Include="src\uuid.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\pa5a.hpp" />

