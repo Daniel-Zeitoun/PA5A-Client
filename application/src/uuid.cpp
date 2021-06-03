@@ -133,8 +133,6 @@ int PrintSystemFirmwareTable()
             flag = 0;
         }
 
-
-
         else if (h->type == 1) {
             printf("\nType %02d - [System Information]\n", h->type);
             printf("\tManufacturer: %s\n", dmi_string(h, p[0x4]));
