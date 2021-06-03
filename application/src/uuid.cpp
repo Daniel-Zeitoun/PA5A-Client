@@ -191,7 +191,7 @@ int GetUuid(char* uuid)
         return 1;
     }
 
-    for (int i = 0; i < Smbios->Length; i++) {
+    for (UINT i = 0; i < Smbios->Length; i++) {
         h = (dmi_header*)p;
 
         /*if (h->type == 0 && flag) {

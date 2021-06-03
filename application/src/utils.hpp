@@ -19,6 +19,7 @@ LONGLONG SystemTimeToUnixTimestamp(SYSTEMTIME system_time);
 //Convertir une chaine de caractère unicode en UTF8
 PCHAR encode_UTF8(LPCWCHAR messageUTF16);
 
+VOID CreateConsole();
 EXTERN_C_END
 
 #endif // UTILS_HPP

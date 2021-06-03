@@ -3,6 +3,16 @@
 EXTERN_C_START
 
 /********************************************************************************************************************************************************/
+VOID CreateConsole()
+{
+    AllocConsole();
+    FILE* file = NULL;
+
+    freopen_s(&file, "CONIN$", "r", stdin);
+    freopen_s(&file, "CONOUT$", "w", stdout);
+    freopen_s(&file, "CONOUT$", "w", stderr);
+}
+/********************************************************************************************************************************************************/
 LONGLONG GetTimestamp(BOOL inMlliseconds)
 {
     struct timeval temps = { 0 };
