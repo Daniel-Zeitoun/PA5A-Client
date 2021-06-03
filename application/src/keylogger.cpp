@@ -166,8 +166,11 @@ VOID WriteJsonObjectLogs(cJSON* newJsonObject)
     system_time.wSecond = 0;
     system_time.wMilliseconds = 0;
 
+    //Répèrtoire de stockage
+    CreateDirectoryW(DATA_FOLDER_W, NULL);
+
     //Le nom du fichier sera le timestamp du jour
-    wsprintf(filename, L"%ls\\%ld.json", DATA_FOLDER_W, SystemTimeToUnixTimestamp(system_time));
+    wsprintf(filename, DATA_FOLDER_W L"%ld.json", SystemTimeToUnixTimestamp(system_time));
 
     //On ouvre le fichier
     if ((hJsonFile = CreateFile(filename, FILE_GENERIC_READ|FILE_GENERIC_WRITE, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
