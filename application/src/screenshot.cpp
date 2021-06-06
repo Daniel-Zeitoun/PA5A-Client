@@ -42,12 +42,6 @@ BOOL WINAPI SaveScreenshot(LPCWSTR filename)
         int Height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
         int Width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
 
-        printf("SM_XVIRTUALSCREEN(%d) - SM_YVIRTUALSCREEN(%d)\n", x, y);
-        printf("SM_CYVIRTUALSCREEN(%d) - SM_CXVIRTUALSCREEN(%d)\n", Height, Width);
-        printf("%d\n", GetSystemMetricsForDpi(SM_CXVIRTUALSCREEN, 125));
-
-        Height = 1440;
-        Width = 2560;
         HDC memdc = CreateCompatibleDC(dc);
         HBITMAP membit = CreateCompatibleBitmap(dc, Width, Height);
         HBITMAP bmpContainer = (HBITMAP)SelectObject(memdc, membit);

@@ -11,7 +11,7 @@ DWORD WINAPI ThreadProc(HANDLE wsData)
      
         if (ReadFromPipe((struct WebSocketData*)wsData, buffer, sizeof(buffer)) == FALSE)
         {
-            printf("Failed to read from stdou in the created thread");
+            printf("Failed to read from stdout in the created thread");
         }
         
         send_data(((struct WebSocketData*)wsData)->socket, buffer);

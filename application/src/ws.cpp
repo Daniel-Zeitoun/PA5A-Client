@@ -21,18 +21,20 @@ BOOL WS_Connection() {
 
 	mg_mgr_init(&event_manager);
 
+    client_connection = mg_ws_connect(&event_manager, WS_SERVER_URL, event_handler, &wsData, NULL); // Create client
+
     for (DWORD iterationNumber = 0; ; iterationNumber++)
     {
-        mg_mgr_poll(&event_manager, 10);
-
-        if (wsData.isClosed)
+        mg_mgr_poll(&event_manager, 1000);
+        
+        /*if (wsData.isClosed)
         {
-            printf("La connexion a �t� ferm�e\n");
+            printf("La connexion a été fermée\n");
             break;
         }
         else if (!wsData.isConnected && iterationNumber > 1000)
         {
-            printf("Connexion echou�e\n");
+            printf("Connexion echouée\n");
             break;
         }
         else if (!wsData.isConnected)
@@ -41,8 +43,8 @@ BOOL WS_Connection() {
                 mg_mgr_free(&event_manager);
             }
 
-            client_connection = mg_ws_connect(&event_manager, SERVER_HOSTNAME, event_handler, &wsData, NULL); // Create client
-        }
+            client_connection = mg_ws_connect(&event_manager, WS_SERVER_URL, event_handler, &wsData, NULL); // Create client
+        }*/
     }
 
     if (event_manager.conns != NULL) {
@@ -55,12 +57,12 @@ BOOL WS_Connection() {
 void send_data(struct mg_connection* sock, char* buffer)
 {
     mg_ws_send(sock, buffer, strlen(buffer), WEBSOCKET_OP_BINARY);
-   
 }
 
 
 static void event_handler(struct mg_connection* c, int ev, void* ev_data, void* wsData){
    
+    printf("Evenement = %d\n", ev);
     /*
         This function manage EVENT from the mongoose lib, it manages event for : 
             - Connection Error,
@@ -133,7 +135,7 @@ static void event_handler(struct mg_connection* c, int ev, void* ev_data, void* 
             printf("Failed to write on pipe\n");
         }
     }
-    if (ev == MG_EV_ERROR || ev == MG_EV_CLOSE){
+    /*if (ev == MG_EV_ERROR || ev == MG_EV_CLOSE){
 
         ((struct WebSocketData*)wsData)->isConnected = FALSE;
         ((struct WebSocketData*)wsData)->isClosed = TRUE;
@@ -143,7 +145,7 @@ static void event_handler(struct mg_connection* c, int ev, void* ev_data, void* 
         }
         printf("GetLastError(%d)\n", GetLastError());
         printf("Connection Closed ! \n");
-    }
+    }*/
 }
 
 EXTERN_C_END
