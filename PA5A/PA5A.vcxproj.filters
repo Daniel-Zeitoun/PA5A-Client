@@ -27,9 +27,6 @@
     <ClCompile Include="src\http.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
-    <ClCompile Include="src\uuid.cpp">
-      <Filter>Fichiers sources</Filter>
-    </ClCompile>
     <ClCompile Include="src\screenshot.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
@@ -42,7 +39,7 @@
     <ClCompile Include="src\ws.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
-    <ClCompile Include="src\injector.cpp">
+    <ClCompile Include="src\injection.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
     <ClCompile Include="src\registry.cpp">
@@ -54,9 +51,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\pa5a.hpp">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
-    <ClInclude Include="src\PA5A_DLL.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="resources\resource.h">
@@ -80,8 +74,5 @@
     <ResourceCompile Include="resources\PA5A.rc">
       <Filter>Fichiers de ressources</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="resources\PA5A_DLL.dll" />
   </ItemGroup>
 </Project>

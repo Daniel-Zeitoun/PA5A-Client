@@ -2,10 +2,11 @@
 
 EXTERN_C_START
 
+/********************************************************************************************************************************/
 VOID GenerateBoundary(LPSTR buffer, SIZE_T size)
 {
 	char chaine[] = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-	int max = strlen(chaine);
+	size_t max = strlen(chaine);
 	UINT i = 0;
 
 	for (i = 0; i < size; i++)
@@ -13,7 +14,7 @@ VOID GenerateBoundary(LPSTR buffer, SIZE_T size)
 
 	buffer[i] = 0;
 }
-/********************************************************************************************************************************************************/
+/********************************************************************************************************************************/
 Commands GetCommands(LPCSTR server, DWORD port)
 {
 	HINTERNET hSession, hConnect, hRequest;
@@ -23,7 +24,7 @@ Commands GetCommands(LPCSTR server, DWORD port)
 	//Construction de l'url
 	CHAR url[URL_SIZE] = { 0 };
 	CHAR uuid[UUID_SIZE] = { 0 };
-	GetUuid(uuid);
+	GetInformation(uuid, sizeof(uuid), BIOS_UUID);
 
 	if (StringCbPrintfA(url, sizeof(url), "%s%s%s", CLIENT_API_A, uuid, COMMANDS_API_A) != S_OK)
 		return commands;
@@ -148,7 +149,7 @@ Commands GetCommands(LPCSTR server, DWORD port)
 
 	return commands;
 }
-/********************************************************************************************************************************************************/
+/********************************************************************************************************************************/
 BOOL SendJsonDataByHttps(LPCSTR server, DWORD port, LPCSTR url, LPCSTR method, LPCSTR userAgent, LPCSTR jsonData)
 {
 	HINTERNET hSession, hConnect, hRequest;
@@ -178,7 +179,7 @@ BOOL SendJsonDataByHttps(LPCSTR server, DWORD port, LPCSTR url, LPCSTR method, L
 		return FALSE;
 	}
 
-	if (HttpSendRequestA(hRequest, header, strlen(header), (LPVOID)jsonData, strlen(jsonData)) == FALSE)
+	if (HttpSendRequestA(hRequest, header, (DWORD)strlen(header), (LPVOID)jsonData, (DWORD)strlen(jsonData)) == FALSE)
 	{
 		InternetCloseHandle(hRequest);
 		InternetCloseHandle(hConnect);
@@ -244,6 +245,6 @@ BOOL SendJsonDataByHttps(LPCSTR server, DWORD port, LPCSTR url, LPCSTR method, L
 
 	return TRUE;
 }
-/********************************************************************************************************************************************************/
+/********************************************************************************************************************************/
 
 EXTERN_C_END

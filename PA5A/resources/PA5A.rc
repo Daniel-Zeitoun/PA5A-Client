@@ -68,7 +68,7 @@ IDI_ICON1               ICON                    "PA5A.ico"
 // RCDATA
 //
 
-IDR_RCDATA1             RCDATA                  "PA5A.dll"
+IDR_RCDATA1             RCDATA                  "PA5A_DLL.dll"
 
 #endif    // Français (France) resources
 /////////////////////////////////////////////////////////////////////////////
