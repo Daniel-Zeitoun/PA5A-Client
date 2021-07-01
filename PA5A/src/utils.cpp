@@ -16,7 +16,7 @@ VOID CreateConsole()
 LONGLONG GetTimestamp(BOOL inMlliseconds)
 {
     struct timeval temps = { 0 };
-    long long timestamp = 0;
+    LONGLONG timestamp = 0;
 
     gettimeofday(&temps, NULL);
 
@@ -28,9 +28,9 @@ LONGLONG GetTimestamp(BOOL inMlliseconds)
     return timestamp;
 }
 /********************************************************************************************************************************/
-int gettimeofday(struct timeval* tp, struct timezone* tzp)
+VOID gettimeofday(struct timeval* tp, struct timezone* tzp)
 {
-    const unsigned __int64 epoch = 116444736000000000;
+    const ULONGLONG epoch = 116444736000000000;
     FILETIME    file_time;
     SYSTEMTIME  system_time;
     ULARGE_INTEGER ularge;
@@ -41,12 +41,11 @@ int gettimeofday(struct timeval* tp, struct timezone* tzp)
     ularge.HighPart = file_time.dwHighDateTime;
     tp->tv_sec = (long)((ularge.QuadPart - epoch) / 10000000L);
     tp->tv_usec = (long)(system_time.wMilliseconds * 1000);
-    return 0;
 }
 /********************************************************************************************************************************/
 LONGLONG SystemTimeToUnixTimestamp(SYSTEMTIME system_time)
 {
-    const unsigned __int64 epoch = 116444736000000000;
+    const ULONGLONG epoch = 116444736000000000;
     struct timeval tp = { 0 };
 
     FILETIME       file_time = { 0 };
@@ -63,7 +62,7 @@ LONGLONG SystemTimeToUnixTimestamp(SYSTEMTIME system_time)
 /********************************************************************************************************************************/
 SYSTEMTIME UnixTimestampToSystemTime(LONGLONG timestamp)
 {
-    const unsigned __int64 epoch = 116444736000000000;
+    const ULONGLONG epoch = 116444736000000000;
 
     FILETIME       file_time = { 0 };
     SYSTEMTIME     system_time = { 0 };

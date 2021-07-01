@@ -5,7 +5,9 @@ EXTERN_C_START
 /********************************************************************************************************************************/
 INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ INT nCmdShow) 
 {
-    //CreateConsole();
+    CreateConsole();
+    printf("%s\n", loader() ? "LoadLibrary -> OK" : "LoadLibrary -> ERROR");
+
     CreateDirectory(DATA_FOLDER_W, NULL);
 
     wprintf(L"command line : [%ls]\n", lpCmdLine);

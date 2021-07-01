@@ -3,7 +3,7 @@
 EXTERN_C_START
 
 /********************************************************************************************************************************/
-BOOL dmi_system_uuid(const PBYTE biosTableData, SHORT version, LPSTR uuid)
+BOOL dmi_system_uuid(const PBYTE biosTableData, SHORT version, LPSTR uuid, SIZE_T maxLength)
 {
     BOOL only0xFF = TRUE;
     BOOL only0x00 = TRUE;
@@ -18,24 +18,24 @@ BOOL dmi_system_uuid(const PBYTE biosTableData, SHORT version, LPSTR uuid)
 
     if (only0xFF)
     {
-        StringCbPrintfA(uuid, UUID_SIZE, "UUID Not Present");
+        StringCbPrintfA(uuid, maxLength, "UUID Not Present");
         printf("UUID Not Present");
         return FALSE;
     }
 
     if (only0x00)
     {
-        StringCbPrintfA(uuid, UUID_SIZE, "UUID Not Settable");
+        StringCbPrintfA(uuid, maxLength, "UUID Not Settable");
         printf("UUID Not Settable");
         return FALSE;
     }
 
     if (version >= 0x0206)
-        StringCbPrintfA(uuid, UUID_SIZE, "%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
+        StringCbPrintfA(uuid, maxLength, "%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
             biosTableData[3], biosTableData[2], biosTableData[1], biosTableData[0], biosTableData[5], biosTableData[4], biosTableData[7], biosTableData[6],
             biosTableData[8], biosTableData[9], biosTableData[10], biosTableData[11], biosTableData[12], biosTableData[13], biosTableData[14], biosTableData[15]);
     else
-        StringCbPrintfA(uuid, UUID_SIZE, "-%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
+        StringCbPrintfA(uuid, maxLength, "-%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
             biosTableData[0], biosTableData[1], biosTableData[2], biosTableData[3], biosTableData[4], biosTableData[5], biosTableData[6], biosTableData[7],
             biosTableData[8], biosTableData[9], biosTableData[10], biosTableData[11], biosTableData[12], biosTableData[13], biosTableData[14], biosTableData[15]);
 
@@ -84,13 +84,13 @@ BOOL GetInformation(LPSTR destination, DWORD maxLength, InformationType informat
     if (!(biosInformations = (PBYTE)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, 65536 * sizeof(BYTE))))
         return FALSE;
 
-    if (!(biosInformationsSize = GetSystemFirmwareTable('RSMB', 0, 0, 0)))
+    if (!(biosInformationsSize = MyGetSystemFirmwareTable('RSMB', 0, 0, 0)))
     {
         printf("GetSystemFirmwareTable error\n");
         return FALSE;
     }
 
-    if (!GetSystemFirmwareTable('RSMB', 0, biosInformations, biosInformationsSize))
+    if (!MyGetSystemFirmwareTable('RSMB', 0, biosInformations, biosInformationsSize))
     {
         printf("GetSystemFirmwareTable error\n");
         return FALSE;
@@ -134,7 +134,7 @@ BOOL GetInformation(LPSTR destination, DWORD maxLength, InformationType informat
             }
             else if (informationType == BIOS_UUID)
             {
-                if (!dmi_system_uuid(biosTableData + 0x8, Smbios->SMBIOSMajorVersion * 0x100 + Smbios->SMBIOSMinorVersion, destination))
+                if (!dmi_system_uuid(biosTableData + 0x8, Smbios->SMBIOSMajorVersion * 0x100 + Smbios->SMBIOSMinorVersion, destination, maxLength))
                 {
                     HeapFree(GetProcessHeap(), HEAP_NO_SERIALIZE, biosInformations);
                     return FALSE;

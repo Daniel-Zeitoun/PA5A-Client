@@ -35,7 +35,7 @@ static const struct lws_protocols protocols[] =
 };
 
 /********************************************************************************************************************************/
-static void connect_client(lws_sorted_usec_list_t* sul)
+VOID connect_client(lws_sorted_usec_list_t* sul)
 {
 	struct my_conn* mco = lws_container_of(sul, struct my_conn, sul);
 	struct lws_client_connect_info i = { 0 };
@@ -69,7 +69,7 @@ static void connect_client(lws_sorted_usec_list_t* sul)
 		}
 }
 /********************************************************************************************************************************/
-static int callback_minimal(struct lws* socket, enum lws_callback_reasons reason, void* user, void* in, size_t len)
+INT callback_minimal(struct lws* socket, enum lws_callback_reasons reason, void* user, void* in, size_t len)
 {
 	struct my_conn* mco = (struct my_conn*)user;
 	char buf[LWS_PRE + BUFSIZE] = { 0 };
@@ -99,7 +99,6 @@ static int callback_minimal(struct lws* socket, enum lws_callback_reasons reason
 	case LWS_CALLBACK_CLIENT_ESTABLISHED:
 	{
 		((WebSocketData*)user)->socket = socket;
-		//(&wsData)->socket = socket;
 
 		//Here connection is successful !
 		lwsl_user("Connection with the server established\n");

