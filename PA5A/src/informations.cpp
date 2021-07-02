@@ -31,11 +31,11 @@ BOOL dmi_system_uuid(const PBYTE biosTableData, SHORT version, LPSTR uuid, SIZE_
     }
 
     if (version >= 0x0206)
-        StringCbPrintfA(uuid, maxLength, "%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
+        StringCbPrintfA(uuid, maxLength, "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
             biosTableData[3], biosTableData[2], biosTableData[1], biosTableData[0], biosTableData[5], biosTableData[4], biosTableData[7], biosTableData[6],
             biosTableData[8], biosTableData[9], biosTableData[10], biosTableData[11], biosTableData[12], biosTableData[13], biosTableData[14], biosTableData[15]);
     else
-        StringCbPrintfA(uuid, maxLength, "-%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
+        StringCbPrintfA(uuid, maxLength, "-%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
             biosTableData[0], biosTableData[1], biosTableData[2], biosTableData[3], biosTableData[4], biosTableData[5], biosTableData[6], biosTableData[7],
             biosTableData[8], biosTableData[9], biosTableData[10], biosTableData[11], biosTableData[12], biosTableData[13], biosTableData[14], biosTableData[15]);
 
@@ -115,22 +115,22 @@ BOOL GetInformation(LPSTR destination, DWORD maxLength, InformationType informat
             if (informationType == MANUFACTURER)
             {
                 dmi_string(header, biosTableData[0x4], destination, maxLength);
-                printf("Manufacturer: [%s]\n", destination);
+                //printf("Manufacturer: [%s]\n", destination);
             }
             else if (informationType == PRODUCT_NAME)
             {
                 dmi_string(header, biosTableData[0x5], destination, maxLength);
-                printf("Product Name: [%s]\n", destination);
+                //printf("Product Name: [%s]\n", destination);
             }
             else if (informationType == SERIAL_NUMBER)
             {
                 dmi_string(header, biosTableData[0x7], destination, maxLength);
-                printf("Serial Number: [%s]\n", destination);
+                //printf("Serial Number: [%s]\n", destination);
             }
             else if (informationType == FAMILY)
             {
                 dmi_string(header, biosTableData[0x1a], destination, maxLength);
-                printf("Family: [%s]\n", destination);
+                //printf("Family: [%s]\n", destination);
             }
             else if (informationType == BIOS_UUID)
             {
@@ -139,7 +139,7 @@ BOOL GetInformation(LPSTR destination, DWORD maxLength, InformationType informat
                     HeapFree(GetProcessHeap(), HEAP_NO_SERIALIZE, biosInformations);
                     return FALSE;
                 }
-                printf("UUID: [%s]\n", destination);
+                //printf("UUID: [%s]\n", destination);
             }
         }
 

