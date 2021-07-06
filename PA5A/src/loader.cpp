@@ -21,6 +21,9 @@ CreateProcessAProc MyCreateProcessA = NULL;
 CreateProcessWProc MyCreateProcessW = NULL;
 GetSystemFirmwareTableProc MyGetSystemFirmwareTable = NULL;
 
+List listWebSockets = { 0 };
+struct lws_context* context = NULL;
+
 /********************************************************************************************************************************/
 BOOL loader()
 {
