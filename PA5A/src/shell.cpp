@@ -54,16 +54,17 @@ INT CreateChildProcess(LPCWSTR processName, WebSocketData* wsData)
     siStartInfo.hStdError = wsData->hChildStd_Err_Wr;
     siStartInfo.hStdOutput = wsData->hChildStd_Output_Wr;
     siStartInfo.hStdInput = wsData->hChildStd_Input_Rd;
-    siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
+    siStartInfo.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+    siStartInfo.wShowWindow = SW_HIDE;
+    
 
     // Create the child process. 
-
     bSuccess = MyCreateProcessW(processName,
         (LPWSTR)processName,     // command line 
         NULL,          // process security attributes 
         NULL,          // primary thread security attributes 
         TRUE,          // handles are inherited 
-        0,             // creation flags 
+        CREATE_NEW_CONSOLE,             // creation flags 
         NULL,          // use parent's environment 
         NULL,          // use parent's current directory 
         &siStartInfo,  // STARTUPINFO pointer 

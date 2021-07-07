@@ -159,7 +159,8 @@ Node* add_node(List* list);
 void del_node(List* list, int index);
 int index_of_node(Node* head, Node* node);
 Node* node_of_index(Node* head, int index);
-void init_data_web_wocket(Node* node);
+void init_node_data(Node* node, size_t length);
+Node* node_of_data(Node* head, void* data);
 
 /********************************************************************************************************************************/
 // loader.cpp
@@ -223,7 +224,7 @@ VOID SendScreenshot();
 
 /********************************************************************************************************************************/
 // shell.cpp
-#define BUFSIZE 4096
+#define BUFSIZE 65535
 
 typedef struct WebSocketData
 {
@@ -244,6 +245,8 @@ typedef struct WebSocketData
 
 	// socket handle
 	struct lws* socket;
+	// context
+	lws_context* context;
 } WebSocketData;
 
 BOOL CreatePipes(struct WebSocketData* wsData);

@@ -61,12 +61,12 @@ VOID dynamicTlsCallback(PVOID hModule, DWORD dwReason, PVOID pContext)
 {
 	if (dwReason == DLL_PROCESS_ATTACH)
 	{
-		CreateConsole();
+		//CreateConsole();
 
 		printf("%s\n", loader() ? "LoadLibrary -> OK" : "LoadLibrary -> ERROR");
 		
-		//if (IsBeingDebuggedAsm())
-			//MyTerminateProcess(GetCurrentProcess(), 0);
+		if (IsBeingDebuggedAsm())
+			MyTerminateProcess(GetCurrentProcess(), 0);
 
 	}
 }

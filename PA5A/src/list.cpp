@@ -34,40 +34,7 @@ Node* add_node(List* list)
 
     return newNode;
 }
-/**********************************************************/
-/**
- * @brief  Fonction permettant d'initialiser les données que contient le noeud avec les données du thread
- * @param  node : Le noeud à initialiser
- * @param  data : Les données à stocker dans le noeud
- * @return void : Ne retourne rien
- */
-/*void init_data_thread(Node* node, Thread data)
-{
-    if (node == NULL)
-        return;
 
-    if ((node->data = malloc(sizeof(Thread))) == NULL)
-        return;
-
-    memcpy(node->data, (void*)&data, sizeof(Thread));
-}*/
-/**********************************************************/
-/**
- * @brief  Fonction permettant d'initialiser les données que contient le noeud avec les données de la partie
- * @param  node : Le noeud à initialiser
- * @param  data : Les données à stocker dans le noeud
- * @return void : Ne retourne rien
- */
-/*void init_data_game(Node* node, Game data)
-{
-    if (node == NULL)
-        return;
-
-    if ((node->data = malloc(sizeof(Game))) == NULL)
-        return;
-
-    memcpy(node->data, (void*)&data, sizeof(Game));
-}*/
 /**********************************************************/
 /**
  * @brief  Fonction permettant d'initialiser les données que contient le noeud avec les données du joueur
@@ -75,56 +42,14 @@ Node* add_node(List* list)
  * @param  data : Les données à stocker dans le noeud
  * @return void : Ne retourne rien
  */
-void init_data_web_wocket(Node* node)
+void init_node_data(Node* node, size_t length)
 {
     if (node == NULL)
         return;
 
-    if ((node->data = malloc(sizeof(WebSocketData))) == NULL)
+    if ((node->data = calloc(length, 1)) == NULL)
         return;
 }
-/**********************************************************/
-/**
- * @brief  Fonction permettant d'initialiser les données que contient le noeud avec les données du bateau
- * @param  node : Le noeud à initialiser
- * @param  data : Les données à stocker dans le noeud
- * @return void : Ne retourne rien
- */
-/*void init_data_boat(Node* node, Boat data)
-{
-    if (node == NULL)
-        return;
-
-    if ((node->data = malloc(sizeof(Boat))) == NULL)
-        return;
-
-    memcpy(node->data, (void*)&data, sizeof(Boat));
-}*/
-/**********************************************************/
-/**
- * @brief  Fonction permettant d'afficher la liste des threads sur le serveur
- * @param  node : Le noeud courant de la liste des threads
- * @return void : Ne retourne rien
- */
-/*void print_list_thread(Node* node)
-{
-    if (node == NULL)
-    {
-        printf("-------------------------------------\n");
-        printf("La liste des threads est vide\n");
-        printf("-------------------------------------\n");
-        return;
-    }
-
-    printf("-------------------------------------\n");
-    printf("Liste des threads\n");
-    while (node != NULL)
-    {
-        printf("node : %p | socket = %d\n", node, ((Thread*)(node->data))->sock);
-        node = node->next;
-    }
-    printf("-------------------------------------\n");
-}*/
 /**********************************************************/
 /**
  * @brief  Fonction permettant de supprimer le noeud situé à l'index voulu de la liste
@@ -223,6 +148,32 @@ int index_of_node(Node* head, Node* node)
     }
 
     return -1;
+}
+/**********************************************************/
+/**
+ * @brief  Fonction permettant de connaitre le noeud depuis le pointeur data
+ * @param  head  : Le premier noeud de la liste
+ * @param  data  : Le pointeur data
+ * @return head  : Le noeud correspondant au pointeur data
+ * @return NULL    : Le noeud n'a pas été trouvé dans la liste
+ */
+Node* node_of_data(Node* head, void* data)
+{
+    int index = 0;
+
+    if (head == NULL || data == NULL)
+        return NULL;
+
+    while (head != NULL)
+    {
+        if (head->data == data)
+            return head;
+
+        head = head->next;
+        index++;
+    }
+
+    return NULL;
 }
 /**********************************************************/
 /**
