@@ -5,25 +5,37 @@ EXTERN_C_START
 /********************************************************************************************************************************/
 BOOL WritePa5aDll()
 {
+    HRSRC resource = NULL;
+    if ((resource = FindResource(NULL, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA)) == NULL)
+        return FALSE;
+
+    DWORD resourceSize = 0;
+    resourceSize = SizeofResource(NULL, resource);
+
+    HGLOBAL resourceData = NULL;
+    if ((resourceData = LoadResource(NULL, resource)) == NULL)
+        return FALSE;
+
+    PVOID resourcePointer = NULL;
+    if ((resourcePointer = LockResource(resourceData)) == NULL)
+        return FALSE;
+
+    WCHAR filename[PATH_SIZE] = { 0 };
+    if (StringCbPrintf(filename, sizeof(filename), L"%s%s", DATA_FOLDER_W, DLL_FILE_W) != S_OK)
+        return FALSE;
+
     HANDLE hDll = NULL;
-    CHAR filename[PATH_SIZE] = { 0 };
-
-    HRSRC myResource = FindResource(NULL, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
-    DWORD myResourceSize = SizeofResource(NULL, myResource);
-    HGLOBAL myResourceData = LoadResource(NULL, myResource);
-    PVOID pMyBinaryData = LockResource(myResourceData);
-
-    if (StringCbPrintfA(filename, sizeof(filename), "%s%s", DATA_FOLDER_A, DLL_FILE_A) != S_OK)
+    if ((hDll = CreateFile(filename, FILE_GENERIC_READ | FILE_GENERIC_WRITE, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
         return FALSE;
 
-    if ((hDll = CreateFileA(filename, FILE_GENERIC_WRITE, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
+    DWORD bytesWritten = 0;
+    if (!WriteFile(hDll, resourcePointer, resourceSize, &bytesWritten, NULL) || bytesWritten != resourceSize)
+    {
+        CloseHandle(hDll);
         return FALSE;
-
-    if (!WriteFile(hDll, pMyBinaryData, myResourceSize, NULL, NULL))
-        return FALSE;
+    }
 
     CloseHandle(hDll);
-
     return TRUE;
 }
 /********************************************************************************************************************************/
