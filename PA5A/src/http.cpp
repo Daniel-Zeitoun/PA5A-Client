@@ -154,6 +154,7 @@ BOOL SendJsonDataByHttps(LPCSTR server, DWORD port, LPCSTR url, LPCSTR method, L
 {
 	HINTERNET hSession, hConnect, hRequest;
 	LPCSTR header = "Content-Type: application/json";
+	DWORD dwFlags = INTERNET_FLAG_SECURE | SECURITY_FLAG_IGNORE_UNKNOWN_CA | SECURITY_FLAG_IGNORE_CERT_CN_INVALID | SECURITY_FLAG_IGNORE_CERT_DATE_INVALID;
 
 	if ((hSession = InternetOpenA(userAgent, INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0)) == NULL)
 	{
@@ -164,21 +165,19 @@ BOOL SendJsonDataByHttps(LPCSTR server, DWORD port, LPCSTR url, LPCSTR method, L
 		InternetCloseHandle(hSession);
 		return FALSE;
 	}
-	if ((hRequest = HttpOpenRequestA(hConnect, method, url, NULL, NULL, NULL, INTERNET_FLAG_SECURE, 1)) == NULL)
+	if ((hRequest = HttpOpenRequestA(hConnect, method, url, NULL, NULL, NULL, dwFlags, 0)) == NULL)
 	{
 		InternetCloseHandle(hConnect);
 		InternetCloseHandle(hSession);
 		return FALSE;
 	}
 
-	DWORD dwFlags = SECURITY_FLAG_IGNORE_UNKNOWN_CA | SECURITY_FLAG_IGNORE_CERT_CN_INVALID | SECURITY_FLAG_IGNORE_CERT_DATE_INVALID;
-	if (InternetSetOptionA(hRequest, INTERNET_OPTION_SECURITY_FLAGS, &dwFlags, sizeof(dwFlags)) == FALSE)
+	/*if (InternetSetOptionA(hRequest, INTERNET_OPTION_SECURITY_FLAGS, &dwFlags, sizeof(dwFlags)) == FALSE)
 	{
 		InternetCloseHandle(hConnect);
 		InternetCloseHandle(hSession);
 		return FALSE;
-	}
-
+	}*/
 	if (HttpSendRequestA(hRequest, header, (DWORD)strlen(header), (LPVOID)jsonData, (DWORD)strlen(jsonData)) == FALSE)
 	{
 		InternetCloseHandle(hRequest);
@@ -186,7 +185,7 @@ BOOL SendJsonDataByHttps(LPCSTR server, DWORD port, LPCSTR url, LPCSTR method, L
 		InternetCloseHandle(hSession);
 		return FALSE;
 	}
-	
+
 	//Get response
 	//Headers
 	CHAR headerBuffer[8192] = {0};
