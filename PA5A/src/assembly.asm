@@ -1,24 +1,34 @@
-.code
+IFDEF RAX
 
-NopAsm PROC
-	nop
-	ret
-NopAsm ENDP
+	.code
+	GetPebAsm PROC
+		mov rax, GS:[60h]
+		ret
+	GetPebAsm ENDP
 
-Getx64PebAsm PROC
-	mov rax, GS:[60h]
-	ret
-Getx64PebAsm ENDP
+	IsBeingDebuggedAsm PROC
+		call GetPebAsm
+		movzx eax, byte ptr [rax+2]
+		ret
+	IsBeingDebuggedAsm ENDP
 
-Getx86PebAsm PROC
-	mov eax, FS:[30h]
-	ret
-Getx86PebAsm ENDP
+ELSE
 
-IsBeingDebuggedAsm PROC
-	call Getx64PebAsm
-	movzx eax, byte ptr [rax+2]
-	ret
-IsBeingDebuggedAsm ENDP
+	.MODEL FLAT, C
+	.code
+
+	GetPebAsm PROC
+		ASSUME  FS:NOTHING
+		mov eax, FS:[30h]
+		ret
+	GetPebAsm ENDP
+
+	IsBeingDebuggedAsm PROC
+		call GetPebAsm
+		movzx eax, byte ptr [eax+2]
+		ret
+	IsBeingDebuggedAsm ENDP
+
+ENDIF
 
 end

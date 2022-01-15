@@ -29,9 +29,7 @@ EXTERN_C PIMAGE_TLS_CALLBACK tlsCallbacksArray = (PIMAGE_TLS_CALLBACK)staticTlsC
 #pragma data_seg()
 #endif
 
-EXTERN_C VOID NopAsm();
-EXTERN_C LONGLONG Getx64PebAsm();
-EXTERN_C LONGLONG IsBeingDebuggedAsm();
+EXTERN_C INT IsBeingDebuggedAsm(VOID);
 /********************************************************************************************************************************/
 // Static TLS callback
 VOID staticTlsCallback(PVOID hModule, DWORD dwReason, PVOID pContext)
@@ -61,13 +59,16 @@ VOID dynamicTlsCallback(PVOID hModule, DWORD dwReason, PVOID pContext)
 {
 	if (dwReason == DLL_PROCESS_ATTACH)
 	{
-		//CreateConsole();
+		#if _DEBUG
+			CreateConsole();
+		#endif
 
 		printf("%s\n", loader() ? "LoadLibrary -> OK" : "LoadLibrary -> ERROR");
 		
-		if (IsBeingDebuggedAsm())
-			MyTerminateProcess(GetCurrentProcess(), 0);
-
+		#if NDEBUG
+			if (IsBeingDebuggedAsm())
+				MyTerminateProcess(GetCurrentProcess(), 0);
+		#endif
 	}
 }
 /********************************************************************************************************************************/
